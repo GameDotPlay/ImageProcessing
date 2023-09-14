@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	TgaImage tgaImage(inputPath);
 	tgaImage.GetHeader()->PrintToConsole();
 
-	//Effects::GaussianBlur(tgaImage, 0.2f);
+	Effects::GaussianBlur(tgaImage, blurValue);
 
-	//tgaImage.SaveToFile(outputPath);
+	tgaImage.SaveToFile(outputPath);
 }
