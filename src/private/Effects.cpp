@@ -63,15 +63,89 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 				float kernelValue = kernel[kernelX + radius][kernelY + radius];
 				int32_t kernelPixelIndex = (pixelIndex + kernelX) + (tgaImage.GetHeader()->Width * kernelY);
 
-				// If the kernel tries to process a pixel outside of the image, just continue.
-				if (kernelPixelIndex < 0 || kernelPixelIndex > tgaImage.GetPixelData().size() - 1)
+				// If the kernel tries to process a pixel outside of the image, find the nearest valid pixel and use that value.
+				if (kernelPixelIndex < 0)
 				{
+					kernelPixelIndex += kernelPixelIndex;
+
+					if (kernelX < 0)
+					{
+						if (kernelY < 0)
+						{
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+						else
+						{
+							kernelPixelIndex += (tgaImage.GetHeader()->Width * kernelY);
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+					}
+					else if (kernelY < 0)
+					{
+						if (kernelX < 0)
+						{
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+						else
+						{
+							kernelPixelIndex += kernelX;
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+					}
+
 					continue;
 				}
+				else if (kernelPixelIndex > tgaImage.GetPixelData().size() - 1)
+				{
+					kernelPixelIndex = tgaImage.GetPixelData().size() - 1;
 
-				red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
-				green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
-				blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+					if (kernelX > 0)
+					{
+						if (kernelY > 0)
+						{
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+						else
+						{
+							kernelPixelIndex -= (tgaImage.GetHeader()->Width * kernelY);
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+					}
+					else if (kernelY > 0)
+					{
+						if (kernelX > 0)
+						{
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+						else
+						{
+							kernelPixelIndex -= kernelX;
+							red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+							green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+							blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+						}
+					}
+				}
+				else
+				{
+					red += (tgaImage.GetPixelData()[kernelPixelIndex].red) * kernelValue;
+					green += (tgaImage.GetPixelData()[kernelPixelIndex].green) * kernelValue;
+					blue += (tgaImage.GetPixelData()[kernelPixelIndex].blue) * kernelValue;
+				}
 			}
 		}
 
