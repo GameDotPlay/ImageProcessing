@@ -50,9 +50,9 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 
 	for (size_t pixelIndex = radius; pixelIndex < tgaImage.GetPixelData().size(); pixelIndex++)
 	{
-		float red = 0.0f;
-		float green = 0.0f;
-		float blue = 0.0f;
+		uint8_t red = 0;
+		uint8_t green = 0;
+		uint8_t blue = 0;
 
 		for (int kernelX = -radius; kernelX <= radius; kernelX++)
 		{
@@ -76,9 +76,9 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 	{
 		for (size_t imageY = radius; imageY <= tgaImage.GetHeader()->Height; imageY++)
 		{
-			float red = 0.0f;
-			float green = 0.0f;
-			float blue = 0.0f;
+			uint8_t red = 0;
+			uint8_t green = 0;
+			uint8_t blue = 0;
 
 			for (int kernelX = -radius; kernelX <= radius; kernelX++)
 			{
