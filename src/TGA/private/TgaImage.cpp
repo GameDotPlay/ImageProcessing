@@ -55,7 +55,6 @@ TgaImage::~TgaImage()
 	{
 		delete this->extensions;
 	}
-
 }
 
 Header* TgaImage::GetHeader() const
@@ -66,6 +65,14 @@ Header* TgaImage::GetHeader() const
 std::vector<Pixel>& TgaImage::GetPixelData()
 {
 	return this->pixelBuffer;
+}
+
+void TgaImage::SetPixelData(std::vector<Pixel>& newPixels)
+{
+	if (newPixels.size() == this->pixelBuffer.size())
+	{
+		this->pixelBuffer = newPixels;
+	}
 }
 
 Footer* TgaImage::GetFooter() const
@@ -106,7 +113,21 @@ void TgaImage::SaveToFile(const std::string& filename) const
 	{
 		this->WriteHeaderToFile(outFile);
 		this->WritePixelDataToFile(outFile);
-		this->WriteFooterToFile(outFile);
+
+		if (this->footer != nullptr)
+		{
+			this->WriteFooterToFile(outFile);
+
+			if (this->developerDirectory != nullptr)
+			{
+				this->WriteDeveloperDirectoryToFile(outFile);
+			}
+
+			if (this->extensions != nullptr)
+			{
+				this->WriteExtensionsToFile(outFile);
+			}
+		}
 	}
 
 	outFile.close();
@@ -248,18 +269,18 @@ void TgaImage::PopulatePixelBuffer(const std::vector<uint8_t>& buffer, size_t& o
 {
 	this->pixelBuffer.resize(this->header->Width * this->header->Height);
 
-	for (auto& pixel : this->pixelBuffer)
+	for (size_t i = 0; i < this->pixelBuffer.size(); i++)
 	{
-		memcpy(&pixel.blue, &buffer[offset], sizeof(uint8_t));
+		memcpy(&this->pixelBuffer[i].blue, &buffer[offset], sizeof(uint8_t));
 		offset += sizeof(uint8_t);
-		memcpy(&pixel.green, &buffer[offset], sizeof(uint8_t));
+		memcpy(&this->pixelBuffer[i].green, &buffer[offset], sizeof(uint8_t));
 		offset += sizeof(uint8_t);
-		memcpy(&pixel.red, &buffer[offset], sizeof(uint8_t));
+		memcpy(&this->pixelBuffer[i].red, &buffer[offset], sizeof(uint8_t));
 		offset += sizeof(uint8_t);
 
 		if (this->alphaChannelDepth != 0)
 		{
-			memcpy(&pixel.alpha, &buffer[offset], sizeof(uint8_t));
+			memcpy(&this->pixelBuffer[i].alpha, &buffer[offset], sizeof(uint8_t));
 			offset += sizeof(uint8_t);
 		}
 	}
