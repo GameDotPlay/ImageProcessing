@@ -17,6 +17,7 @@ public:
 	~TgaImage();
 	Header* GetHeader() const;
 	std::vector<Pixel>& GetPixelData();
+	void SetPixelData(std::vector<Pixel>& newPixels);
 	Footer* GetFooter() const;
 	DeveloperDirectory* GetDeveloperDirectory() const;
 	Extensions* GetExtensions() const;
