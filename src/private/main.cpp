@@ -20,7 +20,12 @@ int main(int argc, char** argv)
 	float blurValue = std::stof(argv[3]);
 
 	TgaImage tgaImage(inputPath);
-	tgaImage.GetHeader()->PrintToConsole();
+	if ((int)tgaImage.GetHeader()->ImageType != 2)
+	{
+		std::cout << "This image is of ImageType=" << (int)tgaImage.GetHeader()->ImageType << std::endl;
+		std::cout << "This application currently only supports uncompressed TRUE-COLOR tga images. (ImageType=2)." << std::endl;
+		return -1;
+	}
 
 	Effects::GaussianBlur(tgaImage, blurValue);
 
