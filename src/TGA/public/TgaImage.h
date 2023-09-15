@@ -16,15 +16,16 @@ public:
 	TgaImage(const std::string& filename);
 	~TgaImage();
 	Header* GetHeader() const;
-	std::vector<Pixel>& GetPixelData();
-	void SetPixelData(std::vector<Pixel>& newPixels);
+	const std::vector<Pixel>& GetPixelData() const;
 	Footer* GetFooter() const;
 	DeveloperDirectory* GetDeveloperDirectory() const;
 	Extensions* GetExtensions() const;
+
+	void SetPixelData(std::vector<Pixel>& newPixels);
+
 	bool IsRightToLeftPixelOrder() const;
 	bool IsTopToBottomPixelOrder() const;
 	uint8_t GetAlphaChannelDepth() const;
-
 	void SaveToFile(const std::string& filename) const; 
 
 private:
@@ -33,16 +34,17 @@ private:
 	DeveloperDirectory* developerDirectory = nullptr;
 	Extensions* extensions = nullptr;
 	Footer* footer = nullptr;
-	bool RightToLeftPixelOrdering = false;
-	bool TopToBottomPixelOrdering = false;
+	bool rightToLeftPixelOrdering = false;
+	bool topToBottomPixelOrdering = false;
 	uint8_t alphaChannelDepth = 0;
 	std::vector<Pixel> pixelData = {};
 	
-	void PopulateHeader(const std::vector<uint8_t>& buffer);
-	void PopulateFooter(const std::vector<uint8_t>& buffer);
-	void PopulateDeveloperField(const std::vector<uint8_t>& buffer);
-	void PopulateExtensions(const std::vector<uint8_t>& buffer);
-	void PopulatePixelData(const std::vector<uint8_t>& buffer);
+	TgaImage() = delete;
+	void PopulateHeader(std::ifstream& inStream);
+	void PopulateFooter(std::ifstream& inStream);
+	void PopulateDeveloperField(std::ifstream& inStream);
+	void PopulateExtensions(std::ifstream& inStream);
+	void PopulatePixelData(std::ifstream& inStream);
 
 	void WriteHeaderToFile(std::ofstream& outFile) const;
 	void WritePixelDataToFile(std::ofstream& outFile) const;
