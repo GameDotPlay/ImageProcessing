@@ -3,6 +3,8 @@
 
 struct Header
 {
+	static const uint8_t SIZE = 18;
+
 	uint8_t IdLength = 0;
 	uint8_t ColorMapType = 0;
 	uint8_t ImageType = 0;
