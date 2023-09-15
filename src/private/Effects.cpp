@@ -28,6 +28,7 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 		float red = 0.0f;
 		float green = 0.0f;
 		float blue = 0.0f;
+		float alpha = 0.0f;
 
 		for (int32_t kernelY = -radius; kernelY <= radius; kernelY++)
 		{
@@ -45,13 +46,14 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 				red += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].red * kernelValue;
 				green += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].green * kernelValue;
 				blue += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].blue * kernelValue;
+				alpha += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].alpha * kernelValue;
 			}
 		}
 
 		newPixels[pixelIndex].red = round(red);
 		newPixels[pixelIndex].green = round(green);
 		newPixels[pixelIndex].blue = round(blue);
-		newPixels[pixelIndex].alpha = tgaImage.GetPixelData()[pixelIndex].alpha;
+		newPixels[pixelIndex].alpha = round(alpha);
 	}
 
 	// Replace the old pixel data with the new pixel data.
