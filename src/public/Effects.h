@@ -13,5 +13,5 @@ private:
 	Effects() = delete;
 	~Effects() = delete;
 
-
+	static std::vector<std::vector<float>> GetGaussianMatrix(const int32_t radius, const float sigma, const size_t kernelWidth);
 };
