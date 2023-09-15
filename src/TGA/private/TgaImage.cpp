@@ -8,20 +8,31 @@ TgaImage::TgaImage(const std::string& filename)
 
 	if (inputFile.good())
 	{
-		std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
-		buffer.shrink_to_fit();
-
-		size_t offset = 0;
-		
-		this->PopulateHeader(buffer, offset);
+		// Grab a header-sized buffer from the stream to verify it is a valid file type we support.
+		std::vector<uint8_t> headerBuffer(Header::SIZE);
+		inputFile.read((char*)headerBuffer.data(), (std::streamsize)headerBuffer.size());
+		this->PopulateHeader(headerBuffer);
 
 		this->alphaChannelDepth = this->header->ImageDescriptor & ImageDescriptorMask::AlphaDepth;
 		this->RightToLeftPixelOrdering = this->header->ImageDescriptor & ImageDescriptorMask::RightToLeftOrdering;
 		this->TopToBottomPixelOrdering = this->header->ImageDescriptor & ImageDescriptorMask::TopToBottomOrdering;
 
-		this->PopulatePixelBuffer(buffer, offset);
+		// Only support uncompressed true-color images currently.
+		if (this->header->ImageType != ImageType::TrueColor)
+		{
+			return;
+		}
+
+		// Get a buffer of the pixel data.
+		std::vector<uint8_t> pixelBuffer(this->header->Width * this->header->Height * this->header->PixelDepth);
+		inputFile.seekg((std::streampos)Header::SIZE);
+		inputFile.read((char*)pixelBuffer.data(), (std::streamsize)pixelBuffer.size());
+		this->PopulatePixelData(pixelBuffer);
 		
-		this->PopulateFooter(buffer);
+		// TODO
+		std::vector<uint8_t> footerBuffer(Footer::SIZE);
+		inputFile.read((char*)footerBuffer.data(), (std::streamsize)footerBuffer.size());
+		this->PopulateFooter(footerBuffer);
 		
 		// Only populate the developer and extension areas if the footer was valid.
 		if (this->footer != nullptr)
@@ -64,14 +75,14 @@ Header* TgaImage::GetHeader() const
 
 std::vector<Pixel>& TgaImage::GetPixelData()
 {
-	return this->pixelBuffer;
+	return this->pixelData;
 }
 
 void TgaImage::SetPixelData(std::vector<Pixel>& newPixels)
 {
-	if (newPixels.size() == this->pixelBuffer.size())
+	if (newPixels.size() == this->pixelData.size())
 	{
-		this->pixelBuffer = newPixels;
+		this->pixelData = newPixels;
 	}
 }
 
@@ -133,8 +144,9 @@ void TgaImage::SaveToFile(const std::string& filename) const
 	outFile.close();
 }
 
-void TgaImage::PopulateHeader(const std::vector<uint8_t>& buffer, size_t& offset)
+void TgaImage::PopulateHeader(const std::vector<uint8_t>& buffer)
 {
+	size_t offset = 0;
 	this->header = new Header();
 
 	memcpy(&this->header->IdLength, &buffer[offset], sizeof(uint8_t));
@@ -265,22 +277,23 @@ void TgaImage::PopulateExtensions(const std::vector<uint8_t>& buffer)
 	memcpy(&this->extensions->AttributesType, &buffer[offset], sizeof(uint8_t));
 }
 
-void TgaImage::PopulatePixelBuffer(const std::vector<uint8_t>& buffer, size_t& offset)
+void TgaImage::PopulatePixelData(const std::vector<uint8_t>& buffer)
 {
-	this->pixelBuffer.resize(this->header->Width * this->header->Height);
+	this->pixelData.resize(this->header->Width * this->header->Height);
+	size_t offset = 0;
 
-	for (size_t i = 0; i < this->pixelBuffer.size(); i++)
+	for (size_t i = 0; i < this->pixelData.size(); i++)
 	{
-		memcpy(&this->pixelBuffer[i].blue, &buffer[offset], sizeof(uint8_t));
+		memcpy(&this->pixelData[i].blue, &buffer[offset], sizeof(uint8_t));
 		offset += sizeof(uint8_t);
-		memcpy(&this->pixelBuffer[i].green, &buffer[offset], sizeof(uint8_t));
+		memcpy(&this->pixelData[i].green, &buffer[offset], sizeof(uint8_t));
 		offset += sizeof(uint8_t);
-		memcpy(&this->pixelBuffer[i].red, &buffer[offset], sizeof(uint8_t));
+		memcpy(&this->pixelData[i].red, &buffer[offset], sizeof(uint8_t));
 		offset += sizeof(uint8_t);
 
 		if (this->alphaChannelDepth != 0)
 		{
-			memcpy(&this->pixelBuffer[i].alpha, &buffer[offset], sizeof(uint8_t));
+			memcpy(&this->pixelData[i].alpha, &buffer[offset], sizeof(uint8_t));
 			offset += sizeof(uint8_t);
 		}
 	}
@@ -304,7 +317,7 @@ void TgaImage::WriteHeaderToFile(std::ofstream& outFile) const
 
 void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 {
-	for (const auto& pixel : this->pixelBuffer)
+	for (const auto& pixel : this->pixelData)
 	{
 		outFile.write((char*)&pixel.blue, sizeof(uint8_t));
 		outFile.write((char*)&pixel.green, sizeof(uint8_t));

@@ -36,13 +36,13 @@ private:
 	bool RightToLeftPixelOrdering = false;
 	bool TopToBottomPixelOrdering = false;
 	uint8_t alphaChannelDepth = 0;
-	std::vector<Pixel> pixelBuffer = {};
-
-	void PopulateHeader(const std::vector<uint8_t>& buffer, size_t& offset);
+	std::vector<Pixel> pixelData = {};
+	
+	void PopulateHeader(const std::vector<uint8_t>& buffer);
 	void PopulateFooter(const std::vector<uint8_t>& buffer);
 	void PopulateDeveloperField(const std::vector<uint8_t>& buffer);
 	void PopulateExtensions(const std::vector<uint8_t>& buffer);
-	void PopulatePixelBuffer(const std::vector<uint8_t>& buffer, size_t& offset);
+	void PopulatePixelData(const std::vector<uint8_t>& buffer);
 
 	void WriteHeaderToFile(std::ofstream& outFile) const;
 	void WritePixelDataToFile(std::ofstream& outFile) const;
@@ -55,5 +55,15 @@ private:
 		AlphaDepth = 0xF,
 		RightToLeftOrdering = 0x10,
 		TopToBottomOrdering = 0x20
+	};
+
+	enum ImageType : uint8_t
+	{
+		ColorMapped = 1,
+		TrueColor = 2,
+		BlackAndWhite = 3,
+		RunLengthEncodedColorMapped = 9,
+		RunLengthEncodedTrueColor = 10,
+		RunLengthEncodedBlackAndWhite = 11
 	};
 };
