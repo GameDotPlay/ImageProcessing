@@ -11,16 +11,15 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 	// Create pixel data to store new pixel values;
 	std::vector<Pixel> newPixels(tgaImage.GetPixelData().size());
 
-	float sigma = 5.0f * blurAmount;
-	int32_t kernelWidth = std::max((int)round(2 * M_PI * sigma * blurAmount), 3);
-	if (kernelWidth % 2 == 0)
-	{
-		kernelWidth--;
-	}
+	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
+	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
+	int32_t radius = std::max((int)round(10 * blurAmount), 1);
 
-	int32_t radius = kernelWidth / 2;
+	// Scale the sigma value by the blurAmount, but we always want a sigma of at least 1.
+	// A value of 10 is chosen here as a reasonable maximum value for sigma to get a near-unrecognizable image at blurAmount = 1
+	float sigma = std::max(10.0f * blurAmount, 1.0f);
 
-	std::vector<std::vector<float>> kernel = Effects::GetGaussianMatrix(radius, sigma, kernelWidth);
+	std::vector<std::vector<float>> kernel = Effects::GetGaussianMatrix(radius, sigma);
 
 	// Apply filter to each pixel in the image.
 	for (size_t pixelIndex = 0; pixelIndex < tgaImage.GetPixelData().size(); pixelIndex++)
@@ -58,8 +57,12 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 	tgaImage.SetPixelData(newPixels);
 }
 
-std::vector<std::vector<float>> Effects::GetGaussianMatrix(const int32_t radius, const float sigma, const size_t kernelWidth)
+std::vector<std::vector<float>> Effects::GetGaussianMatrix(const int32_t radius, const float sigma)
 {
+	// Kernel width is a function of the radius passed in.
+	// But we always want a width of at least 3, and width should be odd so there is always a center pixel.
+	size_t kernelWidth = std::max(((2 * radius) + 1), 3);
+
 	// Calculate Gaussian values for the kernel matrix.
 	std::vector<std::vector<float>> kernel(kernelWidth, std::vector<float>(kernelWidth));
 	float sum = 0.0f;
