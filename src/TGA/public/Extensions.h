@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+/** Represents the extensions field of a TGA image. */
 struct Extensions
 {
 	uint16_t ExtensionSize = 0;

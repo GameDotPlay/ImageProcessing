@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <iostream>
 
+/** Represents the header field of a TGA image. */
 struct Header
 {
 	static const uint8_t SIZE = 18;
@@ -20,6 +21,9 @@ struct Header
 	uint8_t PixelDepth = 0;
 	uint8_t ImageDescriptor = 0;
 
+	/**
+	 * Prints the values of all internal fields to the console.
+	 */
 	void PrintToConsole()
 	{
 		std::cout << "Id Length: " << (unsigned int)this->IdLength << std::endl;

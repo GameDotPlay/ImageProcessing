@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+/** Represents the footer field of a TGA image. */
 struct Footer
 {
 	static const uint8_t SIZE = 26;
