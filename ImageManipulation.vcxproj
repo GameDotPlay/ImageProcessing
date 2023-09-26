@@ -16,6 +16,7 @@
     <ProjectGuid>{d0000ead-00dd-4f83-a8d4-01ebe70d512f}</ProjectGuid>
     <RootNamespace>ImageManipulation</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ImageProcessing</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
