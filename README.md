@@ -1,4 +1,4 @@
-# ImageManipulation
+# Image Processing
 
 Small console application written in C++ that takes a TGA image as input, applies a variable Gaussian Blur effect to the image and saves the modified image as a new TGA file.
 
@@ -10,7 +10,7 @@ External Dependencies: None.
 
 ## Usage
 
-ImageManipulation is a console application that reads it's command line arguments at launch, it does not prompt the user for any input.
+ImageProcessing is a console application that reads it's command line arguments at launch, it does not prompt the user for any input.
 It takes three arguments:
 
 - ```<PathToInputImage>``` Path/filename of an input TGA image.
