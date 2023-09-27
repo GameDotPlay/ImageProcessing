@@ -2,7 +2,7 @@
 
 #include <vector>
 
-struct Pixel;
+struct Vec4;
 
 /** This class contains any effects that can be applied to an image. */
 class Effects
@@ -16,7 +16,7 @@ public:
 	* @param height The height of the pixel data.
 	* @param blurAmount Value of 0-1 inclusive. Higher value gives stronger blur effect.
 	*/
-	static Pixel* const GaussianBlur(const Pixel* const pixels, const size_t width, const size_t height, float blurAmount);
+	static Vec4* const GaussianBlur(const Vec4* const pixels, const size_t width, const size_t height, float blurAmount);
 
 private:
 

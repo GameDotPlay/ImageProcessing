@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <Pixel.h>
+#include <Vector.h>
 #include <TgaImage.h>
 #include <Header.h>
 #include <Effects.h>
