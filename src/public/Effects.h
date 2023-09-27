@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../TGA/public/TgaImage.h"
+#include <vector>
+
+struct Pixel;
 
 /** This class contains any effects that can be applied to an image. */
 class Effects
@@ -9,10 +11,10 @@ public:
 
 	/**
 	* Applies a Gaussian Blur effect to the given image.
-	* @param tgaImage The image to modify.
+	* @param pixels The pixel data to modify.
 	* @param blurAmount Value of 0-1 inclusive. Higher value gives stronger blur effect.
 	*/
-	static void GaussianBlur(TgaImage& tgaImage, const float blurAmount);
+	static Pixel* const GaussianBlur(const Pixel* const pixels, const size_t width, const size_t height, float blurAmount);
 
 private:
 
