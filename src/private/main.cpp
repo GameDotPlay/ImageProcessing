@@ -1,15 +1,17 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include "../TGA/public/TgaImage.h"
-#include "../public/Effects.h"
+#include <Pixel.h>
+#include <TgaImage.h>
+#include <Header.h>
+#include <Effects.h>
 
 int main(int argc, char** argv)
 {
 	if (argc != 4)
 	{
 		std::cout << "Incorrect parameters. Correct usage is:" << std::endl;
-		std::cout << ".>ImageManipulation.exe <Input Image Path> <Output Image Path> <Blur Strength 0-1>" << std::endl;
+		std::cout << ".>ImageProcessing.exe <Input Image Path> <Output Image Path> <Blur Strength 0-1>" << std::endl;
 		return -1;
 	}
 
@@ -17,7 +19,7 @@ int main(int argc, char** argv)
 	std::string outputPath = argv[2];
 	float blurValue = std::stof(argv[3]);
 
-	TgaImage tgaImage(inputPath);
+	Tga::TgaImage tgaImage(inputPath);
 
 	if (tgaImage.GetHeader() == nullptr)
 	{
@@ -34,11 +36,12 @@ int main(int argc, char** argv)
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	Effects::GaussianBlur(tgaImage, blurValue);
+	auto pixels = Effects::GaussianBlur(tgaImage.GetPixelData(), tgaImage.GetHeader()->Width, tgaImage.GetHeader()->Height, blurValue);
 	auto stop = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
+	tgaImage.SetPixelData(pixels);
 	tgaImage.SaveToFile(outputPath);
 
 	std::cout << "New image saved to " << outputPath << std::endl;
