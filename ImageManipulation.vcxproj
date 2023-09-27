@@ -83,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\public\Effects.h" />
-    <ClInclude Include="src\public\Pixel.h" />
+    <ClInclude Include="src\public\Vector.h" />
     <ClInclude Include="src\TGA\public\DeveloperDirectory.h" />
     <ClInclude Include="src\TGA\public\DeveloperTag.h" />
     <ClInclude Include="src\TGA\public\Extensions.h" />
