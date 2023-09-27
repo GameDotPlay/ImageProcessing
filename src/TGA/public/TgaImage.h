@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-struct Pixel;
+struct Vec4;
 
 namespace Tga
 {
@@ -36,7 +36,7 @@ namespace Tga
 		/**
 		 * Get the pixel data from the TGA image.
 		 */
-		const Pixel* const GetPixelData() const;
+		const Vec4* const GetPixelData() const;
 
 		/**
 		 * Get the TGA footer.
@@ -57,7 +57,7 @@ namespace Tga
 		 * Set the pixel data of the TGA image.
 		 * @param newPixels The new pixel data. Must be same size as original pixel data.
 		 */
-		void SetPixelData(Pixel* const newPixels);
+		void SetPixelData(Vec4* const newPixels);
 
 		/**
 		 * Indicates the right-to-left pixel ordering of the TGA image.
@@ -104,7 +104,7 @@ namespace Tga
 		uint8_t alphaChannelDepth = 0;
 
 		/** The internal pixel data stored as an array of Pixels. */
-		Pixel* pixelData = nullptr;
+		Vec4* pixelData = nullptr;
 
 		/** Default constructor not allowed. */
 		TgaImage() = delete;

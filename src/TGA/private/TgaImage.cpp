@@ -5,7 +5,7 @@
 #include <Extensions.h>
 #include <DeveloperDirectory.h>
 #include <DeveloperTag.h>
-#include <Pixel.h>
+#include <Vector.h>
 
 using namespace Tga;
 
@@ -76,12 +76,12 @@ Tga::Header* TgaImage::GetHeader() const
 	return this->header;
 }
 
-const Pixel* const TgaImage::GetPixelData() const
+const Vec4* const TgaImage::GetPixelData() const
 {
 	return this->pixelData;
 }
 
-void TgaImage::SetPixelData(Pixel* const newPixels)
+void TgaImage::SetPixelData(Vec4* const newPixels)
 {
 	this->pixelData = newPixels;
 }
@@ -182,20 +182,20 @@ void TgaImage::PopulatePixelData(std::ifstream& inStream)
 	}
 
 	size_t size = this->header->Width * this->header->Height;
-	this->pixelData = new Pixel[size];
+	this->pixelData = new Vec4[size];
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
 
 	for (size_t i = 0; i < size; i++)
 	{
-		inStream.read((char*)&this->pixelData[i].blue, sizeof(uint8_t));
-		inStream.read((char*)&this->pixelData[i].green, sizeof(uint8_t));
-		inStream.read((char*)&this->pixelData[i].red, sizeof(uint8_t));
+		inStream.read((char*)&this->pixelData[i].z, sizeof(uint8_t));
+		inStream.read((char*)&this->pixelData[i].y, sizeof(uint8_t));
+		inStream.read((char*)&this->pixelData[i].x, sizeof(uint8_t));
 
 		if (this->alphaChannelDepth != 0)
 		{
-			inStream.read((char*)&this->pixelData[i].alpha, sizeof(uint8_t));
+			inStream.read((char*)&this->pixelData[i].w, sizeof(uint8_t));
 		}
 	}
 }
@@ -316,13 +316,13 @@ void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 
 	for (size_t i = 0; i < size; i++)
 	{
-		outFile.write((char*)&this->pixelData[i].blue, sizeof(uint8_t));
-		outFile.write((char*)&this->pixelData[i].green, sizeof(uint8_t));
-		outFile.write((char*)&this->pixelData[i].red, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelData[i].z, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelData[i].y, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelData[i].x, sizeof(uint8_t));
 
 		if (this->alphaChannelDepth != 0)
 		{
-			outFile.write((char*)&this->pixelData[i].alpha, sizeof(uint8_t));
+			outFile.write((char*)&this->pixelData[i].w, sizeof(uint8_t));
 		}
 	}
 }

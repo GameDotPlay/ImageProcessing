@@ -1,17 +1,17 @@
 #include <Effects.h>
-#include <Pixel.h>
+#include <Vector.h>
 #include <vector>
 #include <cmath>
 #include <algorithm>
 #include <corecrt_math_defines.h>
 
-Pixel* const Effects::GaussianBlur(const Pixel* const pixels, const size_t width, const size_t height, float blurAmount)
+Vec4* const Effects::GaussianBlur(const Vec4* const pixels, const size_t width, const size_t height, float blurAmount)
 {
 	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
 
 	// Create pixel data to store new pixel values;
 	size_t length = width * height;
-	Pixel* newPixels = new Pixel[length];
+	Vec4* newPixels = new Vec4[length];
 
 	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
 	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
@@ -44,17 +44,17 @@ Pixel* const Effects::GaussianBlur(const Pixel* const pixels, const size_t width
 					continue;
 				}
 
-				red += (float)pixels[kernelSamplePixelIndex].red * kernelValue;
-				green += (float)pixels[kernelSamplePixelIndex].green * kernelValue;
-				blue += (float)pixels[kernelSamplePixelIndex].blue * kernelValue;
-				alpha += (float)pixels[kernelSamplePixelIndex].alpha * kernelValue;
+				red += (float)pixels[kernelSamplePixelIndex].x * kernelValue;
+				green += (float)pixels[kernelSamplePixelIndex].y * kernelValue;
+				blue += (float)pixels[kernelSamplePixelIndex].z * kernelValue;
+				alpha += (float)pixels[kernelSamplePixelIndex].w * kernelValue;
 			}
 		}
 
-		newPixels[pixelIndex].red = round(red);
-		newPixels[pixelIndex].green = round(green);
-		newPixels[pixelIndex].blue = round(blue);
-		newPixels[pixelIndex].alpha = round(alpha);
+		newPixels[pixelIndex].x = round(red);
+		newPixels[pixelIndex].y = round(green);
+		newPixels[pixelIndex].z = round(blue);
+		newPixels[pixelIndex].w = round(alpha);
 	}
 
 	return newPixels;
