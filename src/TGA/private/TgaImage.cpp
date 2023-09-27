@@ -1,6 +1,13 @@
-#include "../public/TgaImage.h"
-#include "../public/DeveloperTag.h"
 #include <fstream>
+#include <TgaImage.h>
+#include <Header.h>
+#include <Footer.h>
+#include <Extensions.h>
+#include <DeveloperDirectory.h>
+#include <DeveloperTag.h>
+#include <Pixel.h>
+
+using namespace Tga;
 
 TgaImage::TgaImage(const std::string& filename)
 {
@@ -52,7 +59,7 @@ TgaImage::~TgaImage()
 	{
 		delete this->footer;
 	}
-	
+
 	if (this->developerDirectory != nullptr)
 	{
 		delete this->developerDirectory;
@@ -64,35 +71,32 @@ TgaImage::~TgaImage()
 	}
 }
 
-Header* TgaImage::GetHeader() const
+Tga::Header* TgaImage::GetHeader() const
 {
 	return this->header;
 }
 
-const std::vector<Pixel>& TgaImage::GetPixelData() const
+const Pixel* const TgaImage::GetPixelData() const
 {
 	return this->pixelData;
 }
 
-void TgaImage::SetPixelData(std::vector<Pixel>& newPixels)
+void TgaImage::SetPixelData(Pixel* const newPixels)
 {
-	if (newPixels.size() == this->pixelData.size())
-	{
-		this->pixelData = newPixels;
-	}
+	this->pixelData = newPixels;
 }
 
-Footer* TgaImage::GetFooter() const
+Tga::Footer* TgaImage::GetFooter() const
 {
 	return this->footer;
 }
 
-DeveloperDirectory* TgaImage::GetDeveloperDirectory() const
+Tga::DeveloperDirectory* TgaImage::GetDeveloperDirectory() const
 {
 	return this->developerDirectory;
 }
 
-Extensions* TgaImage::GetExtensions() const
+Tga::Extensions* TgaImage::GetExtensions() const
 {
 	return this->extensions;
 }
@@ -177,21 +181,21 @@ void TgaImage::PopulatePixelData(std::ifstream& inStream)
 		return;
 	}
 
-	this->pixelData.resize(this->header->Width * this->header->Height);
-	this->pixelData.shrink_to_fit();
+	size_t size = this->header->Width * this->header->Height;
+	this->pixelData = new Pixel[size];
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
 
-	for (auto& pixel : this->pixelData)
+	for (size_t i = 0; i < size; i++)
 	{
-		inStream.read((char*)&pixel.blue, sizeof(uint8_t));
-		inStream.read((char*)&pixel.green, sizeof(uint8_t));
-		inStream.read((char*)&pixel.red, sizeof(uint8_t));
+		inStream.read((char*)&this->pixelData[i].blue, sizeof(uint8_t));
+		inStream.read((char*)&this->pixelData[i].green, sizeof(uint8_t));
+		inStream.read((char*)&this->pixelData[i].red, sizeof(uint8_t));
 
 		if (this->alphaChannelDepth != 0)
 		{
-			inStream.read((char*)&pixel.alpha, sizeof(uint8_t));
+			inStream.read((char*)&this->pixelData[i].alpha, sizeof(uint8_t));
 		}
 	}
 }
@@ -236,7 +240,7 @@ void TgaImage::PopulateDeveloperField(std::ifstream& inStream)
 	}
 
 	this->developerDirectory = new DeveloperDirectory();
-	
+
 	// Go to the developer offset position.
 	inStream.seekg(this->footer->DeveloperDirectoryOffset, std::ios::beg);
 
@@ -269,7 +273,7 @@ void TgaImage::PopulateExtensions(std::ifstream& inStream)
 
 	// Go to the extensions offset position.
 	inStream.seekg(this->footer->ExtensionAreaOffset, std::ios::beg);
-	
+
 	inStream.read((char*)&this->extensions->ExtensionSize, sizeof(uint16_t));
 	inStream.read((char*)&this->extensions->AuthorName, sizeof(this->extensions->AuthorName));
 	inStream.read((char*)&this->extensions->AuthorComment, sizeof(this->extensions->AuthorComment));
@@ -308,16 +312,17 @@ void TgaImage::WriteHeaderToFile(std::ofstream& outFile) const
 void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 {
 	outFile.seekp(Header::SIZE, std::ios::beg);
+	size_t size = this->header->Width * this->header->Height;
 
-	for (const auto& pixel : this->pixelData)
+	for (size_t i = 0; i < size; i++)
 	{
-		outFile.write((char*)&pixel.blue, sizeof(uint8_t));
-		outFile.write((char*)&pixel.green, sizeof(uint8_t));
-		outFile.write((char*)&pixel.red, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelData[i].blue, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelData[i].green, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelData[i].red, sizeof(uint8_t));
 
 		if (this->alphaChannelDepth != 0)
 		{
-			outFile.write((char*)&pixel.alpha, sizeof(uint8_t));
+			outFile.write((char*)&this->pixelData[i].alpha, sizeof(uint8_t));
 		}
 	}
 }
