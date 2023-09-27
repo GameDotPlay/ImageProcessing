@@ -1,16 +1,17 @@
-#include "../public/Effects.h"
+#include <Effects.h>
+#include <Pixel.h>
 #include <vector>
 #include <cmath>
 #include <algorithm>
 #include <corecrt_math_defines.h>
 
-void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
+Pixel* const Effects::GaussianBlur(const Pixel* const pixels, const size_t width, const size_t height, float blurAmount)
 {
 	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
 
 	// Create pixel data to store new pixel values;
-	std::vector<Pixel> newPixels(tgaImage.GetPixelData().size());
-	newPixels.shrink_to_fit();
+	size_t length = width * height;
+	Pixel* newPixels = new Pixel[length];
 
 	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
 	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
@@ -23,7 +24,7 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 	std::vector<std::vector<float>> kernel = Effects::GetGaussianMatrix(radius, sigma);
 
 	// Apply filter to each pixel in the image.
-	for (size_t pixelIndex = 0; pixelIndex < tgaImage.GetPixelData().size(); pixelIndex++)
+	for (size_t pixelIndex = 0; pixelIndex < length; pixelIndex++)
 	{
 		float red = 0.0f;
 		float green = 0.0f;
@@ -35,18 +36,18 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 			for (int32_t kernelX = -radius; kernelX <= radius; kernelX++)
 			{
 				float kernelValue = kernel[kernelY + radius][kernelX + radius];
-				int32_t kernelSamplePixelIndex = (pixelIndex + kernelX) + (tgaImage.GetHeader()->Width * kernelY);
+				int32_t kernelSamplePixelIndex = (pixelIndex + kernelX) + (width * kernelY);
 
 				// If the kernel tries to process a pixel outside of the image, just continue.
-				if (kernelSamplePixelIndex < 0 || kernelSamplePixelIndex > tgaImage.GetPixelData().size() - 1)
+				if (kernelSamplePixelIndex < 0 || kernelSamplePixelIndex > length - 1)
 				{
 					continue;
 				}
 
-				red += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].red * kernelValue;
-				green += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].green * kernelValue;
-				blue += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].blue * kernelValue;
-				alpha += (float)tgaImage.GetPixelData()[kernelSamplePixelIndex].alpha * kernelValue;
+				red += (float)pixels[kernelSamplePixelIndex].red * kernelValue;
+				green += (float)pixels[kernelSamplePixelIndex].green * kernelValue;
+				blue += (float)pixels[kernelSamplePixelIndex].blue * kernelValue;
+				alpha += (float)pixels[kernelSamplePixelIndex].alpha * kernelValue;
 			}
 		}
 
@@ -56,8 +57,7 @@ void Effects::GaussianBlur(TgaImage& tgaImage, float blurAmount)
 		newPixels[pixelIndex].alpha = round(alpha);
 	}
 
-	// Replace the old pixel data with the new pixel data.
-	tgaImage.SetPixelData(newPixels);
+	return newPixels;
 }
 
 std::vector<std::vector<float>> Effects::GetGaussianMatrix(const int32_t radius, const float sigma)
