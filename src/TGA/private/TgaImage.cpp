@@ -20,12 +20,8 @@ TgaImage::TgaImage(const std::string& filename)
 
 	this->PopulateHeader(inputFile);
 
-	this->alphaChannelDepth = this->header->ImageDescriptor & ImageDescriptorMask::AlphaDepth;
-	this->rightToLeftPixelOrdering = this->header->ImageDescriptor & ImageDescriptorMask::RightToLeftOrdering;
-	this->topToBottomPixelOrdering = this->header->ImageDescriptor & ImageDescriptorMask::TopToBottomOrdering;
-
 	// Only support uncompressed true-color images currently.
-	if (this->header->ImageType != ImageType::TrueColor)
+	if (this->header->ImageType != ImageType::UncompressedTrueColor)
 	{
 		return;
 	}
@@ -55,9 +51,9 @@ TgaImage::~TgaImage()
 		delete this->header;
 	}
 
-	if (this->footer != nullptr)
+	if (this->pixelData != nullptr)
 	{
-		delete this->footer;
+		delete[] this->pixelData;
 	}
 
 	if (this->developerDirectory != nullptr)
@@ -68,6 +64,11 @@ TgaImage::~TgaImage()
 	if (this->extensions != nullptr)
 	{
 		delete this->extensions;
+	}
+
+	if (this->footer != nullptr)
+	{
+		delete this->footer;
 	}
 }
 
@@ -103,17 +104,17 @@ Tga::Extensions* TgaImage::GetExtensions() const
 
 bool TgaImage::IsRightToLeftPixelOrder() const
 {
-	return this->rightToLeftPixelOrdering;
+	return this->header->ImageDescriptor & ImageDescriptorMask::RightToLeftOrdering;
 }
 
 bool TgaImage::IsTopToBottomPixelOrder() const
 {
-	return this->topToBottomPixelOrdering;
+	return this->header->ImageDescriptor & ImageDescriptorMask::TopToBottomOrdering;
 }
 
 uint8_t TgaImage::GetAlphaChannelDepth() const
 {
-	return this->alphaChannelDepth;
+	return this->header->ImageDescriptor & ImageDescriptorMask::AlphaDepth;
 }
 
 void TgaImage::SaveToFile(const std::string& filename) const
@@ -161,7 +162,7 @@ void TgaImage::PopulateHeader(std::ifstream& inStream)
 	inStream.read((char*)&this->header->ImageType, sizeof(uint8_t));
 
 	// Color Map Specification Fields. 5 bytes.
-	inStream.read((char*)&this->header->FirstEntryIndex, sizeof(uint16_t));
+	inStream.read((char*)&this->header->ColorMapFirstEntryIndex, sizeof(uint16_t));
 	inStream.read((char*)&this->header->ColorMapLength, sizeof(uint16_t));
 	inStream.read((char*)&this->header->ColorMapEntrySize, sizeof(uint8_t));
 
@@ -193,7 +194,7 @@ void TgaImage::PopulatePixelData(std::ifstream& inStream)
 		inStream.read((char*)&this->pixelData[i].y, sizeof(uint8_t));
 		inStream.read((char*)&this->pixelData[i].x, sizeof(uint8_t));
 
-		if (this->alphaChannelDepth != 0)
+		if (this->GetAlphaChannelDepth() != 0)
 		{
 			inStream.read((char*)&this->pixelData[i].w, sizeof(uint8_t));
 		}
@@ -298,7 +299,7 @@ void TgaImage::WriteHeaderToFile(std::ofstream& outFile) const
 	outFile.write((char*)&this->header->IdLength, sizeof(uint8_t));
 	outFile.write((char*)&this->header->ColorMapType, sizeof(uint8_t));
 	outFile.write((char*)&this->header->ImageType, sizeof(uint8_t));
-	outFile.write((char*)&this->header->FirstEntryIndex, sizeof(uint16_t));
+	outFile.write((char*)&this->header->ColorMapFirstEntryIndex, sizeof(uint16_t));
 	outFile.write((char*)&this->header->ColorMapLength, sizeof(uint16_t));
 	outFile.write((char*)&this->header->ColorMapEntrySize, sizeof(uint8_t));
 	outFile.write((char*)&this->header->XOrigin, sizeof(uint16_t));
@@ -320,7 +321,7 @@ void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 		outFile.write((char*)&this->pixelData[i].y, sizeof(uint8_t));
 		outFile.write((char*)&this->pixelData[i].x, sizeof(uint8_t));
 
-		if (this->alphaChannelDepth != 0)
+		if (this->GetAlphaChannelDepth() != 0)
 		{
 			outFile.write((char*)&this->pixelData[i].w, sizeof(uint8_t));
 		}

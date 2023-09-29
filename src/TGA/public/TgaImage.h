@@ -85,6 +85,9 @@ namespace Tga
 		/** The header of the TGA image. */
 		Header* header = nullptr;
 
+		/** The ImageId field. */
+		uint8_t* ImageId = nullptr;
+
 		/** The developer field of the TGA image. */
 		DeveloperDirectory* developerDirectory = nullptr;
 
@@ -93,15 +96,6 @@ namespace Tga
 
 		/** The footer field of the TGA image. */
 		Footer* footer = nullptr;
-
-		/** The right-to-left pixel ordering. Populated from the header. */
-		bool rightToLeftPixelOrdering = false;
-
-		/** The top-to-bottom pixel ordering. Populated from the header. */
-		bool topToBottomPixelOrdering = false;
-
-		/** The alpha channel depth in bits. Populated from the header. */
-		uint8_t alphaChannelDepth = 0;
 
 		/** The internal pixel data stored as an array of Pixels. */
 		Vec4* pixelData = nullptr;
@@ -169,7 +163,7 @@ namespace Tga
 		 */
 		void WriteFooterToFile(std::ofstream& outFile) const;
 
-		/** enumeration of TGA image descriptor masks. */
+		/** Enumeration of TGA image descriptor masks. */
 		enum ImageDescriptorMask : uint8_t
 		{
 			AlphaDepth = 0xF,
@@ -180,9 +174,10 @@ namespace Tga
 		/** Enumeration of TGA image types. */
 		enum ImageType : uint8_t
 		{
-			ColorMapped = 1,
-			TrueColor = 2,
-			BlackAndWhite = 3,
+			NoImageData = 0,
+			UncompressedColorMapped = 1,
+			UncompressedTrueColor = 2,
+			UncompressedBlackAndWhite = 3,
 			RunLengthEncodedColorMapped = 9,
 			RunLengthEncodedTrueColor = 10,
 			RunLengthEncodedBlackAndWhite = 11
