@@ -3,7 +3,6 @@
 #include <chrono>
 #include <Vector.h>
 #include <TgaImage.h>
-#include <Header.h>
 #include <Effects.h>
 
 int main(int argc, char** argv)
@@ -21,22 +20,22 @@ int main(int argc, char** argv)
 
 	Tga::TgaImage tgaImage(inputPath);
 
-	if (tgaImage.GetHeader() == nullptr)
+	if (tgaImage.GetImageType() == Tga::Header::EImageType::NoImageData)
 	{
 		std::cout << "An error occurred while attempting to parse image " << inputPath << std::endl;
 		std::cout << "Verify correct image path or try a different image." << std::endl;
 		return -1;
 	}
 
-	if ((int)tgaImage.GetHeader()->ImageType != 2)
+	if ((int)tgaImage.GetImageType() != 2)
 	{
-		std::cout << "This image is of ImageType=" << (int)tgaImage.GetHeader()->ImageType << std::endl;
+		std::cout << "This image is of ImageType=" << (int)tgaImage.GetImageType() << std::endl;
 		std::cout << "This application currently only supports uncompressed TRUE-COLOR tga images. (ImageType=2)." << std::endl;
 		return -1;
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	auto pixels = Effects::GaussianBlur(tgaImage.GetPixelData(), tgaImage.GetHeader()->Width, tgaImage.GetHeader()->Height, blurValue);
+	auto pixels = Effects::GaussianBlur(tgaImage.GetPixelData(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
 	auto stop = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
