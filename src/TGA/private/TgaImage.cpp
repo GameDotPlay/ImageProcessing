@@ -1,6 +1,5 @@
 #include <fstream>
 #include <TgaImage.h>
-#include <Header.h>
 #include <Footer.h>
 #include <Extensions.h>
 #include <DeveloperDirectory.h>
@@ -21,7 +20,7 @@ TgaImage::TgaImage(const std::string& filename)
 	this->PopulateHeader(inputFile);
 
 	// Only support uncompressed true-color images currently.
-	if (this->header->ImageType != ImageType::UncompressedTrueColor)
+	if (this->header->ImageType != Header::EImageType::UncompressedTrueColor)
 	{
 		return;
 	}
@@ -46,11 +45,6 @@ TgaImage::TgaImage(const std::string& filename)
 
 TgaImage::~TgaImage()
 {
-	if (this->header != nullptr)
-	{
-		delete this->header;
-	}
-
 	if (this->pixelData != nullptr)
 	{
 		delete[] this->pixelData;
@@ -70,11 +64,6 @@ TgaImage::~TgaImage()
 	{
 		delete this->footer;
 	}
-}
-
-Tga::Header* TgaImage::GetHeader() const
-{
-	return this->header;
 }
 
 const Vec4* const TgaImage::GetPixelData() const
@@ -152,7 +141,7 @@ void TgaImage::PopulateHeader(std::ifstream& inStream)
 		return;
 	}
 
-	this->header = new Header();
+	this->header = std::make_unique<Header>();
 
 	// Go to the beginning of the file.
 	inStream.seekg(0, std::ios::beg);
@@ -372,4 +361,19 @@ void TgaImage::WriteFooterToFile(std::ofstream& outFile) const
 	outFile.write((char*)&this->footer->Signature, sizeof(this->footer->Signature));
 	outFile.write((char*)&this->footer->ReservedCharacter, sizeof(uint8_t));
 	outFile.write((char*)&this->footer->ZeroTerminator, sizeof(uint8_t));
+}
+
+uint16_t TgaImage::GetWidth() const
+{
+	return this->header->Width;
+}
+
+uint16_t TgaImage::GetHeight() const
+{
+	return this->header->Height;
+}
+
+Header::EImageType TgaImage::GetImageType() const
+{
+	return this->header->ImageType;
 }

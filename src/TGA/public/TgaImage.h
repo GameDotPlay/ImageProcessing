@@ -1,13 +1,15 @@
 #pragma once
 
+#include <Header.h>
+
 #include <cstdint>
 #include <string>
+#include <memory>
 
 struct Vec4;
 
 namespace Tga
 {
-	struct Header;
 	struct Extensions;
 	struct Footer;
 	struct DeveloperDirectory;
@@ -15,6 +17,16 @@ namespace Tga
 	/** TgaImage class is responsible for managing a TGA file resource. */
 	class TgaImage
 	{
+	private:
+
+		/** Enumeration of TGA image descriptor masks. */
+		static enum ImageDescriptorMask : uint8_t
+		{
+			AlphaDepth = 0xF,
+			RightToLeftOrdering = 0x10,
+			TopToBottomOrdering = 0x20
+		};
+
 	public:
 
 		/**
@@ -24,14 +36,24 @@ namespace Tga
 		TgaImage(const std::string& filename);
 
 		/**
+		 * Get the width of the image.
+		 */
+		uint16_t GetWidth() const;
+
+		/**
+		 * Get the height of the image.
+		 */
+		uint16_t GetHeight() const;
+
+		/**
+		 * Get the image type.
+		 */
+		Header::EImageType GetImageType() const;
+
+		/**
 		 * The destructor. Releases any resources.
 		 */
 		~TgaImage();
-
-		/**
-		 * Get the TGA header.
-		 */
-		Header* GetHeader() const;
 
 		/**
 		 * Get the pixel data from the TGA image.
@@ -83,10 +105,7 @@ namespace Tga
 	private:
 
 		/** The header of the TGA image. */
-		Header* header = nullptr;
-
-		/** The ImageId field. */
-		uint8_t* ImageId = nullptr;
+		std::unique_ptr<Header> header = nullptr;
 
 		/** The developer field of the TGA image. */
 		DeveloperDirectory* developerDirectory = nullptr;
@@ -162,25 +181,5 @@ namespace Tga
 		 * @param outFile The output stream.
 		 */
 		void WriteFooterToFile(std::ofstream& outFile) const;
-
-		/** Enumeration of TGA image descriptor masks. */
-		enum ImageDescriptorMask : uint8_t
-		{
-			AlphaDepth = 0xF,
-			RightToLeftOrdering = 0x10,
-			TopToBottomOrdering = 0x20
-		};
-
-		/** Enumeration of TGA image types. */
-		enum ImageType : uint8_t
-		{
-			NoImageData = 0,
-			UncompressedColorMapped = 1,
-			UncompressedTrueColor = 2,
-			UncompressedBlackAndWhite = 3,
-			RunLengthEncodedColorMapped = 9,
-			RunLengthEncodedTrueColor = 10,
-			RunLengthEncodedBlackAndWhite = 11
-		};
 	};
 }
