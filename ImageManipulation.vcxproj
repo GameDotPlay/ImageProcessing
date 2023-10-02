@@ -50,7 +50,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)src\TGA\public;$(ProjectDir)src\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -66,7 +66,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)src\TGA\public;$(ProjectDir)src\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -80,6 +80,9 @@
     <ClCompile Include="src\private\Effects.cpp" />
     <ClCompile Include="src\private\main.cpp" />
     <ClCompile Include="src\TGA\private\TgaImage.cpp" />
+    <ClCompile Include="TexFile-Tga.cpp" />
+    <ClCompile Include="TexFile-Tga.ixx" />
+    <ClCompile Include="TexFile.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\public\Effects.h" />
