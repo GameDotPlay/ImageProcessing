@@ -1,7 +1,5 @@
 module;
 
-#include <Vector.h>
-
 #include <fstream>
 #include <memory>
 
@@ -28,9 +26,8 @@ TgaImage::TgaImage(const std::string& filename)
 	}
 
 	size_t size = this->header->Width * this->header->Height;
-	auto pixels = std::make_unique<Vec4>(size);
 
-	this->pixelData = std::make_unique_for_overwrite<Vec4[]>(size);
+	this->pixelData = std::make_shared<Vec4[]>(size);
 	this->PopulatePixelData(inputFile, this->pixelData);
 
 	// If eof is false after pixel data then there is probably a TGA 2.0 footer.
@@ -58,9 +55,9 @@ TgaImage::~TgaImage()
 
 }
 
-void TgaImage::SetPixelData(std::unique_ptr<Vec4[]>& newPixels)
+void TgaImage::SetPixelData(const std::shared_ptr<Vec4[]>& newPixels)
 {
-	//this->pixelData = newPixels;
+	this->pixelData = newPixels;
 }
 
 bool TgaImage::IsRightToLeftPixelOrder() const
@@ -134,7 +131,7 @@ void TgaImage::PopulateHeader(std::ifstream& inStream, std::unique_ptr<Header>& 
 	inStream.read((char*)&header->ImageDescriptor, sizeof(uint8_t));
 }
 
-void TgaImage::PopulatePixelData(std::ifstream& inStream, std::unique_ptr<Vec4[]>& pixelData)
+void TgaImage::PopulatePixelData(std::ifstream& inStream, std::shared_ptr<Vec4[]>& pixelData)
 {
 	if (!inStream.good())
 	{
@@ -313,6 +310,11 @@ void TgaImage::WriteFooterToFile(std::ofstream& outFile) const
 	outFile.write((char*)&this->footer->Signature, sizeof(this->footer->Signature));
 	outFile.write((char*)&this->footer->ReservedCharacter, sizeof(uint8_t));
 	outFile.write((char*)&this->footer->ZeroTerminator, sizeof(uint8_t));
+}
+
+std::shared_ptr<Vec4[]> TgaImage::GetPixelData() const
+{
+	return this->pixelData;
 }
 
 uint16_t TgaImage::GetWidth() const

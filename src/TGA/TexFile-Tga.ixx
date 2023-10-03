@@ -1,10 +1,10 @@
 export module TexFile:Tga;
 
-#include <string>
-#include <memory>
-#include <vector>
+import <string>;
+import <memory>;
+import <vector>;
 
-struct Vec4;
+import <Vector.h>;
 
 namespace Tga
 {
@@ -14,7 +14,7 @@ namespace Tga
 		static const uint8_t SIZE = 18;
 
 		/** Enumeration of TGA image types. */
-		static enum EImageType : uint8_t
+		enum EImageType : uint8_t
 		{
 			NoImageData = 0,
 			UncompressedColorMapped = 1,
@@ -122,28 +122,13 @@ namespace Tga
 		/**
 		 * Get the pixel data from the TGA image.
 		 */
-		std::unique_ptr<Vec4> GetPixelData() const;
-
-		/**
-		 * Get the TGA footer.
-		 */
-		std::unique_ptr<Footer> GetFooter() const;
-
-		/**
-		 * Get the developer directory from the TGA image.
-		 */
-		std::unique_ptr<DeveloperDirectory> GetDeveloperDirectory() const;
-
-		/**
-		 * Get the extension area info from the TGA image.
-		 */
-		std::unique_ptr<Extensions> GetExtensions() const;
+		std::shared_ptr<Vec4[]> GetPixelData() const;
 
 		/**
 		 * Set the pixel data of the TGA image.
 		 * @param newPixels The new pixel data. Must be same size as original pixel data.
 		 */
-		void SetPixelData(std::unique_ptr<Vec4[]>& newPixels);
+		void SetPixelData(const std::shared_ptr<Vec4[]>& newPixels);
 
 		/**
 		 * Indicates the right-to-left pixel ordering of the TGA image.
@@ -169,7 +154,7 @@ namespace Tga
 	private:
 
 		/** Enumeration of TGA image descriptor masks. */
-		static enum ImageDescriptorMask : uint8_t
+		enum ImageDescriptorMask : uint8_t
 		{
 			AlphaDepth = 0xF,
 			RightToLeftOrdering = 0x10,
@@ -189,7 +174,7 @@ namespace Tga
 		std::unique_ptr<Footer> footer = nullptr;
 
 		/** The internal pixel data stored as an array of Vec4. */
-		std::unique_ptr<Vec4[]> pixelData = nullptr;
+		std::shared_ptr<Vec4[]> pixelData = nullptr;
 
 		/** Default constructor not allowed. */
 		TgaImage() = delete;
@@ -222,7 +207,7 @@ namespace Tga
 		 * Populate the internal pixel data from the input stream.
 		 * @param inStream The input stream.
 		 */
-		void PopulatePixelData(std::ifstream& inStream, std::unique_ptr<Vec4[]>& pixelData);
+		void PopulatePixelData(std::ifstream& inStream, std::shared_ptr<Vec4[]>& pixelData);
 
 		/**
 		 * Write the TGA header field to the output stream.
