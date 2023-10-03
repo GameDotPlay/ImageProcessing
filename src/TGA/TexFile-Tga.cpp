@@ -19,32 +19,36 @@ TgaImage::TgaImage(const std::string& filename)
 	this->header = std::make_unique<Header>();
 	this->PopulateHeader(inputFile, this->header);
 
-	// Only support uncompressed true-color images currently.
-	if (this->header->ImageType != Header::EImageType::UncompressedTrueColor)
+	switch (this->header->ImageType)
 	{
+	case Header::EImageType::NoImageData:
 		return;
-	}
-
-	size_t size = this->header->Width * this->header->Height;
-
-	this->pixelData = std::make_shared<Vec4[]>(size);
-	this->PopulatePixelData(inputFile, this->pixelData);
-
-	// If eof is false after pixel data then there is probably a TGA 2.0 footer.
-	if (!inputFile.eof())
-	{
-		this->footer = std::make_unique<Footer>();
-		this->PopulateFooter(inputFile, this->footer);
-
-		// Only populate the developer and extension areas if the footer was valid.
-		if (this->footer != nullptr)
-		{
-			this->developerDirectory = std::make_unique<DeveloperDirectory>();
-			this->PopulateDeveloperField(inputFile, this->developerDirectory);
-
-			this->extensions = std::make_unique<Extensions>();
-			this->PopulateExtensions(inputFile, extensions);
-		}
+	case Header::EImageType::UncompressedColorMapped:
+		// Parse uncompressed color map image.
+		//this->ParseColorMapped(inputFile);
+		break;
+	case Header::EImageType::UncompressedTrueColor:
+		// Parse uncompressed true color image.
+		this->ParseTrueColor(inputFile);
+		break;
+	case Header::EImageType::UncompressedBlackAndWhite:
+		// Parse uncompressed black and white image.
+		//this->ParseBlackWhite(inputFile);
+		break;
+	case Header::EImageType::RunLengthEncodedColorMapped:
+		// Parse run length encoded color mapped image.
+		//this->ParseRLEColorMapped(inputFile);
+		break;
+	case Header::EImageType::RunLengthEncodedTrueColor:
+		// Parse run length encoded true color image.
+		//this->ParseRLETrueColor(inputFile);
+		break;
+	case Header::EImageType::RunLengthEncodedBlackAndWhite:
+		//this->ParseRLEBlackWhite(inputFile);
+		// Parse run length encoded black and white image.
+		break;
+	default:
+		return;
 	}
 
 	inputFile.close();
@@ -101,6 +105,56 @@ void TgaImage::SaveToFile(const std::string& filename) const
 	}
 
 	outFile.close();
+}
+
+void TgaImage::ParseColorMapped(std::ifstream& inStream)
+{
+
+}
+
+void TgaImage::ParseTrueColor(std::ifstream& inStream)
+{
+	size_t length = this->header->Width * this->header->Height;
+
+	this->pixelData = std::make_shared<Vec4[]>(length);
+	this->PopulatePixelData(inStream, this->pixelData);
+
+	// If eof is false after pixel data then there is probably a TGA 2.0 footer.
+	if (!inStream.eof())
+	{
+		this->footer = std::make_unique<Footer>();
+		this->PopulateFooter(inStream, this->footer);
+
+		// Only populate the developer and extension areas if the footer was valid.
+		if (this->footer != nullptr)
+		{
+			this->developerDirectory = std::make_unique<DeveloperDirectory>();
+			this->PopulateDeveloperField(inStream, this->developerDirectory);
+
+			this->extensions = std::make_unique<Extensions>();
+			this->PopulateExtensions(inStream, extensions);
+		}
+	}
+}
+
+void TgaImage::ParseBlackWhite(std::ifstream& inStream)
+{
+
+}
+
+void TgaImage::ParseRLEColorMapped(std::ifstream& inStream)
+{
+
+}
+
+void TgaImage::ParseRLETrueColor(std::ifstream& inStream)
+{
+
+}
+
+void TgaImage::ParseRLEBlackWhite(std::ifstream& inStream)
+{
+
 }
 
 void TgaImage::PopulateHeader(std::ifstream& inStream, std::unique_ptr<Header>& header)

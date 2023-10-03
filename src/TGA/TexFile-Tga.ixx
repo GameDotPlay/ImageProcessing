@@ -179,6 +179,18 @@ namespace Tga
 		/** Default constructor not allowed. */
 		TgaImage() = delete;
 
+		void ParseColorMapped(std::ifstream& inStream);
+
+		void ParseTrueColor(std::ifstream& inStream);
+
+		void ParseBlackWhite(std::ifstream& inStream);
+
+		void ParseRLEColorMapped(std::ifstream& inStream);
+
+		void ParseRLETrueColor(std::ifstream& inStream);
+
+		void ParseRLEBlackWhite(std::ifstream& inStream);
+
 		/**
 		 * Populate the internal header field from the input stream.
 		 * @param inStream The input stream.
