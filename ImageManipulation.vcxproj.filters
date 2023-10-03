@@ -22,11 +22,11 @@
     <ClCompile Include="src\public\TexFile.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\TGA\TexFile-Tga.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\TGA\TexFile-Tga.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>TGA</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TGA\TexFile-Tga.ixx">
+      <Filter>TGA</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
