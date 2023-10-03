@@ -3,8 +3,8 @@ import TexFile;
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <memory>
-#include <Vector.h>
+//#include <memory>
+//#include <Vector.h>
 #include <Effects.h>
 
 int main(int argc, char** argv)
@@ -37,13 +37,12 @@ int main(int argc, char** argv)
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	auto oldPixels = tgaImage.GetPixelData();
-	auto pixels = Effects::GaussianBlur(oldPixels, tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
+	auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelData(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
 	auto stop = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-	tgaImage.SetPixelData(pixels);
+	tgaImage.SetPixelData(blurredPixels);
 	tgaImage.SaveToFile(outputPath);
 
 	std::cout << "New image saved to " << outputPath << std::endl;
