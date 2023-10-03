@@ -154,7 +154,7 @@ namespace Tga
 	private:
 
 		/** Enumeration of TGA image descriptor masks. */
-		enum ImageDescriptorMask : uint8_t
+		enum EImageDescriptorMask : uint8_t
 		{
 			AlphaDepth = 0xF,
 			RightToLeftOrdering = 0x10,
@@ -175,6 +175,8 @@ namespace Tga
 
 		/** The internal pixel data stored as an array of Vec4. */
 		std::shared_ptr<Vec4[]> pixelData = nullptr;
+
+		std::shared_ptr<void> colorMap = nullptr;
 
 		/** Default constructor not allowed. */
 		TgaImage() = delete;
