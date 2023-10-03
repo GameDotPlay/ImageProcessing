@@ -122,7 +122,7 @@ namespace Tga
 		/**
 		 * Get the pixel data from the TGA image.
 		 */
-		std::shared_ptr<Vec4[]> GetPixelData() const;
+		const std::shared_ptr<Vec4[]> const GetPixelData() const;
 
 		/**
 		 * Set the pixel data of the TGA image.
@@ -192,6 +192,14 @@ namespace Tga
 		void ParseRLETrueColor(std::ifstream& inStream);
 
 		void ParseRLEBlackWhite(std::ifstream& inStream);
+
+		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& map, const size_t colorMapLength);
+
+		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec2[]>& map, const size_t colorMapLength);
+
+		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec3[]>& map, const size_t colorMapLength);
+
+		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& map, const size_t colorMapLength);
 
 		/**
 		 * Populate the internal header field from the input stream.
