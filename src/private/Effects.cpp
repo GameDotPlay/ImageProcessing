@@ -1,17 +1,16 @@
 #include <Effects.h>
-#include <Vector.h>
 #include <vector>
 #include <cmath>
 #include <algorithm>
 #include <corecrt_math_defines.h>
 
-Vec4* const Effects::GaussianBlur(const Vec4* const pixels, const size_t width, const size_t height, float blurAmount)
+std::shared_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
 {
 	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
 
 	// Create pixel data to store new pixel values;
 	size_t length = width * height;
-	Vec4* newPixels = new Vec4[length];
+	std::shared_ptr<Vec4[]> newPixels = std::make_shared<Vec4[]>(length);
 
 	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
 	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.

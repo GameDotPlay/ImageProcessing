@@ -13,44 +13,23 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\TGA\private\TgaImage.cpp">
-      <Filter>TGA</Filter>
-    </ClCompile>
     <ClCompile Include="src\private\Effects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\private\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TexFile.ixx">
+    <ClCompile Include="src\public\TexFile.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TexFile-Tga.ixx">
+    <ClCompile Include="src\TGA\TexFile-Tga.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TexFile-Tga.cpp">
+    <ClCompile Include="src\TGA\TexFile-Tga.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\TGA\public\DeveloperDirectory.h">
-      <Filter>TGA</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TGA\public\DeveloperTag.h">
-      <Filter>TGA</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TGA\public\Extensions.h">
-      <Filter>TGA</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TGA\public\Footer.h">
-      <Filter>TGA</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TGA\public\Header.h">
-      <Filter>TGA</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TGA\public\TgaImage.h">
-      <Filter>TGA</Filter>
-    </ClInclude>
     <ClInclude Include="src\public\Effects.h">
       <Filter>Header Files</Filter>
     </ClInclude>

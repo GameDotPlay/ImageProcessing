@@ -79,20 +79,13 @@
   <ItemGroup>
     <ClCompile Include="src\private\Effects.cpp" />
     <ClCompile Include="src\private\main.cpp" />
-    <ClCompile Include="src\TGA\private\TgaImage.cpp" />
-    <ClCompile Include="TexFile-Tga.cpp" />
-    <ClCompile Include="TexFile-Tga.ixx" />
-    <ClCompile Include="TexFile.ixx" />
+    <ClCompile Include="src\TGA\TexFile-Tga.cpp" />
+    <ClCompile Include="src\TGA\TexFile-Tga.ixx" />
+    <ClCompile Include="src\public\TexFile.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\public\Effects.h" />
     <ClInclude Include="src\public\Vector.h" />
-    <ClInclude Include="src\TGA\public\DeveloperDirectory.h" />
-    <ClInclude Include="src\TGA\public\DeveloperTag.h" />
-    <ClInclude Include="src\TGA\public\Extensions.h" />
-    <ClInclude Include="src\TGA\public\Footer.h" />
-    <ClInclude Include="src\TGA\public\Header.h" />
-    <ClInclude Include="src\TGA\public\TgaImage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

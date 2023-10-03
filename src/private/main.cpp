@@ -1,8 +1,10 @@
+import TexFile;
+
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <memory>
 #include <Vector.h>
-#include <TgaImage.h>
 #include <Effects.h>
 
 int main(int argc, char** argv)
@@ -20,7 +22,7 @@ int main(int argc, char** argv)
 
 	Tga::TgaImage tgaImage(inputPath);
 
-	if (tgaImage.GetImageType() == Tga::Header::EImageType::NoImageData)
+	if (tgaImage.GetImageType() == 0)
 	{
 		std::cout << "An error occurred while attempting to parse image " << inputPath << std::endl;
 		std::cout << "Verify correct image path or try a different image." << std::endl;
@@ -35,7 +37,8 @@ int main(int argc, char** argv)
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	auto pixels = Effects::GaussianBlur(tgaImage.GetPixelData(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
+	auto oldPixels = tgaImage.GetPixelData();
+	auto pixels = Effects::GaussianBlur(oldPixels, tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
 	auto stop = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);

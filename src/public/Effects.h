@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
+#include <Vector.h>
 
-struct Vec4;
+#include <vector>
+#include <memory>
 
 /** This class contains any effects that can be applied to an image. */
 class Effects
@@ -16,7 +17,7 @@ public:
 	* @param height The height of the pixel data.
 	* @param blurAmount Value of 0-1 inclusive. Higher value gives stronger blur effect.
 	*/
-	static Vec4* const GaussianBlur(const Vec4* const pixels, const size_t width, const size_t height, float blurAmount);
+	static std::shared_ptr<Vec4[]> const GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount);
 
 private:
 
