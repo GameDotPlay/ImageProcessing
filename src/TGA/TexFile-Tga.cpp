@@ -66,17 +66,17 @@ void TgaImage::SetPixelData(const std::shared_ptr<Vec4[]>& newPixels)
 
 bool TgaImage::IsRightToLeftPixelOrder() const
 {
-	return this->header->ImageDescriptor & ImageDescriptorMask::RightToLeftOrdering;
+	return this->header->ImageDescriptor & EImageDescriptorMask::RightToLeftOrdering;
 }
 
 bool TgaImage::IsTopToBottomPixelOrder() const
 {
-	return this->header->ImageDescriptor & ImageDescriptorMask::TopToBottomOrdering;
+	return this->header->ImageDescriptor & EImageDescriptorMask::TopToBottomOrdering;
 }
 
 uint8_t TgaImage::GetAlphaChannelDepth() const
 {
-	return this->header->ImageDescriptor & ImageDescriptorMask::AlphaDepth;
+	return this->header->ImageDescriptor & EImageDescriptorMask::AlphaDepth;
 }
 
 void TgaImage::SaveToFile(const std::string& filename) const
@@ -109,12 +109,32 @@ void TgaImage::SaveToFile(const std::string& filename) const
 
 void TgaImage::ParseColorMapped(std::ifstream& inStream)
 {
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Width);
+	size_t colorMapLength = this->header->ColorMapLength * (this->header->ColorMapEntrySize / sizeof(uint8_t));
 
+	switch (this->header->ColorMapEntrySize)
+	{
+	case sizeof(uint8_t) :
+		this->colorMap = std::make_shared<uint8_t[]>(colorMapLength);
+		break;
+	case sizeof(uint8_t) * 2 :
+		this->colorMap = std::make_shared<Vec2[]>(colorMapLength);
+		break;
+	case sizeof(uint8_t) * 3 :
+		this->colorMap = std::make_shared<Vec3[]>(colorMapLength);
+		break;
+	case sizeof(uint8_t) * 4 :
+		this->colorMap = std::make_shared<Vec4[]>(colorMapLength);
+		break;
+	default:
+		this->colorMap = nullptr;
+		break;
+	}
 }
 
 void TgaImage::ParseTrueColor(std::ifstream& inStream)
 {
-	size_t length = this->header->Width * this->header->Height;
+	size_t length = (size_t)(this->header->Width * this->header->Height);
 
 	this->pixelData = std::make_shared<Vec4[]>(length);
 	this->PopulatePixelData(inStream, this->pixelData);
@@ -192,7 +212,7 @@ void TgaImage::PopulatePixelData(std::ifstream& inStream, std::shared_ptr<Vec4[]
 		return;
 	}
 
-	size_t size = this->header->Width * this->header->Height;
+	size_t size = (size_t)(this->header->Width * this->header->Height);
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
@@ -305,7 +325,7 @@ void TgaImage::WriteHeaderToFile(std::ofstream& outFile) const
 void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 {
 	outFile.seekp(Header::SIZE, std::ios::beg);
-	size_t size = this->header->Width * this->header->Height;
+	size_t size = (size_t)(this->header->Width * this->header->Height);
 
 	for (size_t i = 0; i < size; i++)
 	{
