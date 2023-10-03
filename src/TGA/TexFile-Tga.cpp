@@ -9,15 +9,15 @@ using namespace Tga;
 
 TgaImage::TgaImage(const std::string& filename)
 {
-	std::ifstream inputFile(filename, std::ios::in | std::ios::binary);
+	std::ifstream inStream(filename, std::ios::in | std::ios::binary);
 
-	if (!inputFile.good())
+	if (!inStream.good())
 	{
 		return;
 	}
 
 	this->header = std::make_unique<Header>();
-	this->PopulateHeader(inputFile, this->header);
+	this->PopulateHeader(inStream, this->header);
 
 	switch (this->header->ImageType)
 	{
@@ -25,11 +25,11 @@ TgaImage::TgaImage(const std::string& filename)
 		return;
 	case Header::EImageType::UncompressedColorMapped:
 		// Parse uncompressed color map image.
-		//this->ParseColorMapped(inputFile);
+		this->ParseColorMapped(inStream);
 		break;
 	case Header::EImageType::UncompressedTrueColor:
 		// Parse uncompressed true color image.
-		this->ParseTrueColor(inputFile);
+		this->ParseTrueColor(inStream);
 		break;
 	case Header::EImageType::UncompressedBlackAndWhite:
 		// Parse uncompressed black and white image.
@@ -51,7 +51,24 @@ TgaImage::TgaImage(const std::string& filename)
 		return;
 	}
 
-	inputFile.close();
+	// If eof is false after pixel data then there is probably a TGA 2.0 footer.
+	if (!inStream.eof())
+	{
+		this->footer = std::make_unique<Footer>();
+		this->PopulateFooter(inStream, this->footer);
+
+		// Only populate the developer and extension areas if the footer was valid.
+		if (this->footer != nullptr)
+		{
+			this->developerDirectory = std::make_unique<DeveloperDirectory>();
+			this->PopulateDeveloperField(inStream, this->developerDirectory);
+
+			this->extensions = std::make_unique<Extensions>();
+			this->PopulateExtensions(inStream, extensions);
+		}
+	}
+
+	inStream.close();
 }
 
 TgaImage::~TgaImage()
@@ -107,29 +124,85 @@ void TgaImage::SaveToFile(const std::string& filename) const
 	outFile.close();
 }
 
+void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& map, const size_t colorMapLength)
+{
+	// Go to the color map position.
+	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
+
+	for (size_t i = 0; i < colorMapLength; i++)
+	{
+		inStream.read((char*)&map[i], sizeof(uint8_t));
+	}
+}
+
+void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec2[]>& map, const size_t colorMapLength)
+{
+	// Go to the color map position.
+	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
+
+	for (size_t i = 0; i < colorMapLength; i++)
+	{
+		inStream.read((char*)&map[i].y, sizeof(uint8_t));
+		inStream.read((char*)&map[i].x, sizeof(uint8_t));
+	}
+}
+
+void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec3[]>& map, const size_t colorMapLength)
+{
+	// Go to the color map position.
+	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
+
+	for (size_t i = 0; i < colorMapLength; i++)
+	{
+		inStream.read((char*)&map[i].z, sizeof(uint8_t));
+		inStream.read((char*)&map[i].y, sizeof(uint8_t));
+		inStream.read((char*)&map[i].x, sizeof(uint8_t));
+	}
+}
+
+void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& map, const size_t colorMapLength)
+{
+	// Go to the color map position.
+	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
+
+	for (size_t i = 0; i < colorMapLength; i++)
+	{
+		inStream.read((char*)&map[i].z, sizeof(uint8_t));
+		inStream.read((char*)&map[i].y, sizeof(uint8_t));
+		inStream.read((char*)&map[i].x, sizeof(uint8_t));
+		inStream.read((char*)&map[i].w, sizeof(uint8_t));
+	}
+}
+
 void TgaImage::ParseColorMapped(std::ifstream& inStream)
 {
 	size_t pixelsLength = (size_t)(this->header->Width * this->header->Width);
-	size_t colorMapLength = this->header->ColorMapLength * (this->header->ColorMapEntrySize / sizeof(uint8_t));
+	size_t colorMapLength = (size_t)this->header->ColorMapLength * (this->header->ColorMapEntrySize / 8);
 
 	switch (this->header->ColorMapEntrySize)
 	{
-	case sizeof(uint8_t) :
+	case 8 : // 8 bits
 		this->colorMap = std::make_shared<uint8_t[]>(colorMapLength);
+		PopulateColorMap(inStream, std::static_pointer_cast<uint8_t[]>(this->colorMap), colorMapLength);
 		break;
-	case sizeof(uint8_t) * 2 :
+	case 16 : // 16 bits
 		this->colorMap = std::make_shared<Vec2[]>(colorMapLength);
+		PopulateColorMap(inStream, std::static_pointer_cast<Vec2[]>(this->colorMap), colorMapLength);
 		break;
-	case sizeof(uint8_t) * 3 :
+	case 24 : // 24 bits
 		this->colorMap = std::make_shared<Vec3[]>(colorMapLength);
+		PopulateColorMap(inStream, std::static_pointer_cast<Vec3[]>(this->colorMap), colorMapLength);
 		break;
-	case sizeof(uint8_t) * 4 :
+	case 32 : // 32 bits
 		this->colorMap = std::make_shared<Vec4[]>(colorMapLength);
+		PopulateColorMap(inStream, std::static_pointer_cast<Vec4[]>(this->colorMap), colorMapLength);
 		break;
 	default:
 		this->colorMap = nullptr;
 		break;
 	}
+
+
 }
 
 void TgaImage::ParseTrueColor(std::ifstream& inStream)
@@ -138,43 +211,26 @@ void TgaImage::ParseTrueColor(std::ifstream& inStream)
 
 	this->pixelData = std::make_shared<Vec4[]>(length);
 	this->PopulatePixelData(inStream, this->pixelData);
-
-	// If eof is false after pixel data then there is probably a TGA 2.0 footer.
-	if (!inStream.eof())
-	{
-		this->footer = std::make_unique<Footer>();
-		this->PopulateFooter(inStream, this->footer);
-
-		// Only populate the developer and extension areas if the footer was valid.
-		if (this->footer != nullptr)
-		{
-			this->developerDirectory = std::make_unique<DeveloperDirectory>();
-			this->PopulateDeveloperField(inStream, this->developerDirectory);
-
-			this->extensions = std::make_unique<Extensions>();
-			this->PopulateExtensions(inStream, extensions);
-		}
-	}
 }
 
 void TgaImage::ParseBlackWhite(std::ifstream& inStream)
 {
-
+	// TODO
 }
 
 void TgaImage::ParseRLEColorMapped(std::ifstream& inStream)
 {
-
+	// TODO
 }
 
 void TgaImage::ParseRLETrueColor(std::ifstream& inStream)
 {
-
+	// TODO
 }
 
 void TgaImage::ParseRLEBlackWhite(std::ifstream& inStream)
 {
-
+	// TODO
 }
 
 void TgaImage::PopulateHeader(std::ifstream& inStream, std::unique_ptr<Header>& header)
@@ -386,7 +442,7 @@ void TgaImage::WriteFooterToFile(std::ofstream& outFile) const
 	outFile.write((char*)&this->footer->ZeroTerminator, sizeof(uint8_t));
 }
 
-std::shared_ptr<Vec4[]> TgaImage::GetPixelData() const
+const std::shared_ptr<Vec4[]> const TgaImage::GetPixelData() const
 {
 	return this->pixelData;
 }
