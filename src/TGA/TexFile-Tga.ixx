@@ -1,11 +1,10 @@
 export module TexFile:Tga;
 
+import <Vector.h>;
 import <string>;
 import <memory>;
 import <vector>;
 import <unordered_map>;
-
-import <Vector.h>;
 
 namespace Tga
 {
@@ -196,7 +195,9 @@ namespace Tga
 
 		void ParseRLEBlackWhite(std::ifstream& inStream);
 
-		void PopulateColorMap(std::ifstream& inStream);
+		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& colorMap);
+
+		void UpdateColorMap();
 
 		/**
 		 * Populate the internal header field from the input stream.
@@ -256,6 +257,10 @@ namespace Tga
 		 * @param outFile The output stream.
 		 */
 		void WritePixelDataToFile(std::ofstream& outFile) const;
+
+		void WriteColorMappedPixelDataToFile(std::ofstream& outFile) const;
+
+		void WriteTrueColorPixelDataToFile(std::ofstream& outFile) const;
 
 		/**
 		 * Write the TGA developer field to the output stream.
