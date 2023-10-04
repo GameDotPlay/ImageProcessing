@@ -78,7 +78,7 @@ TgaImage::~TgaImage()
 
 void TgaImage::SetPixelData(const std::shared_ptr<Vec4[]>& newPixels)
 {
-	this->pixelData = newPixels;
+	this->pixelBuffer = newPixels;
 }
 
 bool TgaImage::IsRightToLeftPixelOrder() const
@@ -124,93 +124,50 @@ void TgaImage::SaveToFile(const std::string& filename) const
 	outFile.close();
 }
 
-void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& map, const size_t colorMapLength)
+void TgaImage::PopulateColorMap(std::ifstream& inStream)
 {
-	// Go to the color map position.
-	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
-
-	for (size_t i = 0; i < colorMapLength; i++)
+	if (!inStream.good())
 	{
-		inStream.read((char*)&map[i], sizeof(uint8_t));
+		return;
 	}
-}
 
-void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec2[]>& map, const size_t colorMapLength)
-{
-	// Go to the color map position.
+	// Go to start of color map entries.
 	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
 
-	for (size_t i = 0; i < colorMapLength; i++)
+	for (size_t i = 0; i < this->header->ColorMapLength; i++)
 	{
-		inStream.read((char*)&map[i].y, sizeof(uint8_t));
-		inStream.read((char*)&map[i].x, sizeof(uint8_t));
-	}
-}
+		inStream.read((char*)&this->colorMap[i].z, sizeof(uint8_t));
+		inStream.read((char*)&this->colorMap[i].y, sizeof(uint8_t));
+		inStream.read((char*)&this->colorMap[i].x, sizeof(uint8_t));
 
-void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec3[]>& map, const size_t colorMapLength)
-{
-	// Go to the color map position.
-	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
-
-	for (size_t i = 0; i < colorMapLength; i++)
-	{
-		inStream.read((char*)&map[i].z, sizeof(uint8_t));
-		inStream.read((char*)&map[i].y, sizeof(uint8_t));
-		inStream.read((char*)&map[i].x, sizeof(uint8_t));
-	}
-}
-
-void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& map, const size_t colorMapLength)
-{
-	// Go to the color map position.
-	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
-
-	for (size_t i = 0; i < colorMapLength; i++)
-	{
-		inStream.read((char*)&map[i].z, sizeof(uint8_t));
-		inStream.read((char*)&map[i].y, sizeof(uint8_t));
-		inStream.read((char*)&map[i].x, sizeof(uint8_t));
-		inStream.read((char*)&map[i].w, sizeof(uint8_t));
+		if (this->header->ColorMapEntrySize == 32) // 32 bits
+		{
+			inStream.read((char*)&this->colorMap[i].w, sizeof(uint8_t));
+		}
 	}
 }
 
 void TgaImage::ParseColorMapped(std::ifstream& inStream)
 {
-	size_t pixelsLength = (size_t)(this->header->Width * this->header->Width);
-	size_t colorMapLength = (size_t)this->header->ColorMapLength * (this->header->ColorMapEntrySize / 8);
-
-	switch (this->header->ColorMapEntrySize)
+	if (!inStream.good())
 	{
-	case 8 : // 8 bits
-		this->colorMap = std::make_shared<uint8_t[]>(colorMapLength);
-		PopulateColorMap(inStream, std::static_pointer_cast<uint8_t[]>(this->colorMap), colorMapLength);
-		break;
-	case 16 : // 16 bits
-		this->colorMap = std::make_shared<Vec2[]>(colorMapLength);
-		PopulateColorMap(inStream, std::static_pointer_cast<Vec2[]>(this->colorMap), colorMapLength);
-		break;
-	case 24 : // 24 bits
-		this->colorMap = std::make_shared<Vec3[]>(colorMapLength);
-		PopulateColorMap(inStream, std::static_pointer_cast<Vec3[]>(this->colorMap), colorMapLength);
-		break;
-	case 32 : // 32 bits
-		this->colorMap = std::make_shared<Vec4[]>(colorMapLength);
-		PopulateColorMap(inStream, std::static_pointer_cast<Vec4[]>(this->colorMap), colorMapLength);
-		break;
-	default:
-		this->colorMap = nullptr;
-		break;
+		return;
 	}
 
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Width);
 
+	this->colorMap = std::make_shared<Vec4[]>(this->header->ColorMapLength);
+	this->PopulateColorMap(inStream);
+	this->PopulatePixelData(inStream, this->colorMappedPixels);
+	this->PopulatePixelData(this->colorMap, this->colorMappedPixels, this->pixelBuffer);
 }
 
 void TgaImage::ParseTrueColor(std::ifstream& inStream)
 {
 	size_t length = (size_t)(this->header->Width * this->header->Height);
 
-	this->pixelData = std::make_shared<Vec4[]>(length);
-	this->PopulatePixelData(inStream, this->pixelData);
+	this->pixelBuffer = std::make_shared<Vec4[]>(length);
+	this->PopulatePixelData(inStream, this->pixelBuffer);
 }
 
 void TgaImage::ParseBlackWhite(std::ifstream& inStream)
@@ -261,28 +218,61 @@ void TgaImage::PopulateHeader(std::ifstream& inStream, std::unique_ptr<Header>& 
 	inStream.read((char*)&header->ImageDescriptor, sizeof(uint8_t));
 }
 
-void TgaImage::PopulatePixelData(std::ifstream& inStream, std::shared_ptr<Vec4[]>& pixelData)
+void TgaImage::PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& pixelBuffer)
 {
 	if (!inStream.good())
 	{
 		return;
 	}
 
-	size_t size = (size_t)(this->header->Width * this->header->Height);
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
 
-	for (size_t i = 0; i < size; i++)
+	for (size_t i = 0; i < pixelsLength; i++)
 	{
-		inStream.read((char*)&pixelData[i].z, sizeof(uint8_t));
-		inStream.read((char*)&pixelData[i].y, sizeof(uint8_t));
-		inStream.read((char*)&pixelData[i].x, sizeof(uint8_t));
+		inStream.read((char*)&pixelBuffer[i].z, sizeof(uint8_t));
+		inStream.read((char*)&pixelBuffer[i].y, sizeof(uint8_t));
+		inStream.read((char*)&pixelBuffer[i].x, sizeof(uint8_t));
 
-		if (this->GetAlphaChannelDepth() != 0)
+		if (this->GetAlphaChannelDepth() != 0) // 32 bit pixels
 		{
-			inStream.read((char*)&pixelData[i].w, sizeof(uint8_t));
+			inStream.read((char*)&pixelBuffer[i].w, sizeof(uint8_t));
 		}
+	}
+}
+
+void TgaImage::PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& colorMappedPixels)
+{
+	if (!inStream.good())
+	{
+		return;
+	}
+
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+
+	// Go to the pixel data position.
+	size_t colorMapLengthBytes = (size_t)this->header->ColorMapLength * (this->header->ColorMapEntrySize / 8);
+
+	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex + colorMapLengthBytes, std::ios::beg);
+
+	for (size_t i = 0; i < pixelsLength; i++)
+	{
+		inStream.read((char*)&colorMappedPixels[i], sizeof(uint8_t));
+	}
+}
+
+void TgaImage::PopulatePixelData(const std::shared_ptr<Vec4[]>& colorMap, const std::shared_ptr<uint8_t[]>& colorMappedPixels, const std::shared_ptr<Vec4[]>& pixelBuffer)
+{
+	size_t pixelsLength = (size_t)this->header->Width * this->header->Height;
+
+	for (size_t i = 0; i < pixelsLength; i++)
+	{
+		pixelBuffer[i].z = colorMap[colorMappedPixels[i]].z;
+		pixelBuffer[i].y = colorMap[colorMappedPixels[i]].y;
+		pixelBuffer[i].x = colorMap[colorMappedPixels[i]].x;
+		pixelBuffer[i].w = colorMap[colorMappedPixels[i]].w;
 	}
 }
 
@@ -385,13 +375,13 @@ void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 
 	for (size_t i = 0; i < size; i++)
 	{
-		outFile.write((char*)&this->pixelData[i].z, sizeof(uint8_t));
-		outFile.write((char*)&this->pixelData[i].y, sizeof(uint8_t));
-		outFile.write((char*)&this->pixelData[i].x, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelBuffer[i].z, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelBuffer[i].y, sizeof(uint8_t));
+		outFile.write((char*)&this->pixelBuffer[i].x, sizeof(uint8_t));
 
 		if (this->GetAlphaChannelDepth() != 0)
 		{
-			outFile.write((char*)&this->pixelData[i].w, sizeof(uint8_t));
+			outFile.write((char*)&this->pixelBuffer[i].w, sizeof(uint8_t));
 		}
 	}
 }
@@ -444,7 +434,7 @@ void TgaImage::WriteFooterToFile(std::ofstream& outFile) const
 
 const std::shared_ptr<Vec4[]> const TgaImage::GetPixelData() const
 {
-	return this->pixelData;
+	return this->pixelBuffer;
 }
 
 uint16_t TgaImage::GetWidth() const

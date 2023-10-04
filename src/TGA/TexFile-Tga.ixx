@@ -3,6 +3,7 @@ export module TexFile:Tga;
 import <string>;
 import <memory>;
 import <vector>;
+import <unordered_map>;
 
 import <Vector.h>;
 
@@ -174,9 +175,11 @@ namespace Tga
 		std::unique_ptr<Footer> footer = nullptr;
 
 		/** The internal pixel data stored as an array of Vec4. */
-		std::shared_ptr<Vec4[]> pixelData = nullptr;
+		std::shared_ptr<Vec4[]> pixelBuffer = nullptr;
 
-		std::shared_ptr<void> colorMap = nullptr;
+		std::shared_ptr<uint8_t[]> colorMappedPixels = nullptr;
+
+		std::shared_ptr<Vec4[]> colorMap = nullptr;
 
 		/** Default constructor not allowed. */
 		TgaImage() = delete;
@@ -193,43 +196,54 @@ namespace Tga
 
 		void ParseRLEBlackWhite(std::ifstream& inStream);
 
-		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& map, const size_t colorMapLength);
-
-		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec2[]>& map, const size_t colorMapLength);
-
-		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec3[]>& map, const size_t colorMapLength);
-
-		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& map, const size_t colorMapLength);
+		void PopulateColorMap(std::ifstream& inStream);
 
 		/**
 		 * Populate the internal header field from the input stream.
 		 * @param inStream The input stream.
+		 * @param header Pointer to Header struct to populate.
 		 */
 		void PopulateHeader(std::ifstream& inStream, std::unique_ptr<Header>& header);
 
 		/**
 		 * Populate the internal footer field from the input stream.
 		 * @param inStream The input stream.
+		 * @param footer Pointer to Footer struct to populate.
 		 */
 		void PopulateFooter(std::ifstream& inStream, std::unique_ptr<Footer>& footer);
 
 		/**
 		 * Populate the internal developer field from the input stream.
 		 * @param inStream The input stream.
+		 * @param developerDirectory Pointer to DeveloperDirectory struct to populate.
 		 */
 		void PopulateDeveloperField(std::ifstream& inStream, std::unique_ptr<DeveloperDirectory>& developerDirectory);
 
 		/**
 		 * Populate the internal extensions field from the input stream.
 		 * @param inStream The input stream.
+		 * @param extensions Pointer to Extension struct to populate.
 		 */
 		void PopulateExtensions(std::ifstream& inStream, std::unique_ptr<Extensions>& extensions);
 
 		/**
-		 * Populate the internal pixel data from the input stream.
+		 * Populate the uncompressed pixel data from the input stream.
 		 * @param inStream The input stream.
+		 * @param pixelBuffer Pointer to array of pixels.
 		 */
-		void PopulatePixelData(std::ifstream& inStream, std::shared_ptr<Vec4[]>& pixelData);
+		void PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& pixelBuffer);
+
+		/**
+		 * Populate the color mapped pixel data from the input stream.
+		 * @param inStream The input stream.
+		 * @param colorMappedPixels Pointer to array of indices into the color map.
+		 */
+		void PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& colorMappedPixels);
+
+		/**
+		 * 
+		 */
+		void PopulatePixelData(const std::shared_ptr<Vec4[]>& colorMap, const std::shared_ptr<uint8_t[]>& colorMappedPixels, const std::shared_ptr<Vec4[]>& pixelBuffer);
 
 		/**
 		 * Write the TGA header field to the output stream.
