@@ -3,8 +3,6 @@ import TexFile;
 #include <iostream>
 #include <string>
 #include <chrono>
-//#include <memory>
-//#include <Vector.h>
 #include <Effects.h>
 
 int main(int argc, char** argv)
@@ -26,13 +24,6 @@ int main(int argc, char** argv)
 	{
 		std::cout << "An error occurred while attempting to parse image " << inputPath << std::endl;
 		std::cout << "Verify correct image path or try a different image." << std::endl;
-		return -1;
-	}
-
-	if ((int)tgaImage.GetImageType() != 2)
-	{
-		std::cout << "This image is of ImageType=" << (int)tgaImage.GetImageType() << std::endl;
-		std::cout << "This application currently only supports uncompressed TRUE-COLOR tga images. (ImageType=2)." << std::endl;
 		return -1;
 	}
 
