@@ -1,7 +1,6 @@
 module;
 
 #include <fstream>
-#include <memory>
 
 module TexFile:Tga;
 
@@ -22,36 +21,33 @@ TgaImage::TgaImage(const std::string& filename)
 	switch (this->header->ImageType)
 	{
 	case Header::EImageType::NoImageData:
+		inStream.close();
 		return;
 	case Header::EImageType::UncompressedColorMapped:
-		// Parse uncompressed color map image.
 		this->ParseColorMapped(inStream);
 		break;
 	case Header::EImageType::UncompressedTrueColor:
-		// Parse uncompressed true color image.
 		this->ParseTrueColor(inStream);
 		break;
 	case Header::EImageType::UncompressedBlackAndWhite:
-		// Parse uncompressed black and white image.
 		//this->ParseBlackWhite(inputFile);
 		break;
 	case Header::EImageType::RunLengthEncodedColorMapped:
-		// Parse run length encoded color mapped image.
 		//this->ParseRLEColorMapped(inputFile);
 		break;
 	case Header::EImageType::RunLengthEncodedTrueColor:
-		// Parse run length encoded true color image.
 		//this->ParseRLETrueColor(inputFile);
 		break;
 	case Header::EImageType::RunLengthEncodedBlackAndWhite:
 		//this->ParseRLEBlackWhite(inputFile);
-		// Parse run length encoded black and white image.
 		break;
 	default:
+		this->header->ImageType = Header::EImageType::NoImageData;
+		inStream.close();
 		return;
 	}
 
-	// If eof is false after pixel data then there is probably a TGA 2.0 footer.
+	// If eof is false after pixel data then check for a TGA 2.0 footer.
 	if (!inStream.eof())
 	{
 		this->footer = std::make_unique<Footer>();
@@ -124,7 +120,25 @@ void TgaImage::SaveToFile(const std::string& filename) const
 	outFile.close();
 }
 
-void TgaImage::PopulateColorMap(std::ifstream& inStream)
+void TgaImage::ParseColorMapped(std::ifstream& inStream)
+{
+	if (!inStream.good())
+	{
+		return;
+	}
+
+	this->colorMap = std::make_shared<Vec4[]>(this->header->ColorMapLength);
+	this->PopulateColorMap(inStream, this->colorMap);
+
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Width);
+	this->colorMappedPixels = std::make_shared<uint8_t[]>(pixelsLength);
+	this->PopulatePixelData(inStream, this->colorMappedPixels);
+
+	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+	this->PopulatePixelData(this->colorMap, this->colorMappedPixels, this->pixelBuffer);
+}
+
+void TgaImage::PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& colorMap)
 {
 	if (!inStream.good())
 	{
@@ -136,30 +150,15 @@ void TgaImage::PopulateColorMap(std::ifstream& inStream)
 
 	for (size_t i = 0; i < this->header->ColorMapLength; i++)
 	{
-		inStream.read((char*)&this->colorMap[i].z, sizeof(uint8_t));
-		inStream.read((char*)&this->colorMap[i].y, sizeof(uint8_t));
-		inStream.read((char*)&this->colorMap[i].x, sizeof(uint8_t));
+		inStream.read((char*)&colorMap[i].z, sizeof(uint8_t));
+		inStream.read((char*)&colorMap[i].y, sizeof(uint8_t));
+		inStream.read((char*)&colorMap[i].x, sizeof(uint8_t));
 
 		if (this->header->ColorMapEntrySize == 32) // 32 bits
 		{
 			inStream.read((char*)&this->colorMap[i].w, sizeof(uint8_t));
 		}
 	}
-}
-
-void TgaImage::ParseColorMapped(std::ifstream& inStream)
-{
-	if (!inStream.good())
-	{
-		return;
-	}
-
-	size_t pixelsLength = (size_t)(this->header->Width * this->header->Width);
-
-	this->colorMap = std::make_shared<Vec4[]>(this->header->ColorMapLength);
-	this->PopulateColorMap(inStream);
-	this->PopulatePixelData(inStream, this->colorMappedPixels);
-	this->PopulatePixelData(this->colorMap, this->colorMappedPixels, this->pixelBuffer);
 }
 
 void TgaImage::ParseTrueColor(std::ifstream& inStream)
@@ -250,11 +249,10 @@ void TgaImage::PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<
 		return;
 	}
 
-	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
-
-	// Go to the pixel data position.
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);	
 	size_t colorMapLengthBytes = (size_t)this->header->ColorMapLength * (this->header->ColorMapEntrySize / 8);
 
+	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE + this->header->ColorMapFirstEntryIndex + colorMapLengthBytes, std::ios::beg);
 
 	for (size_t i = 0; i < pixelsLength; i++)
@@ -269,10 +267,7 @@ void TgaImage::PopulatePixelData(const std::shared_ptr<Vec4[]>& colorMap, const 
 
 	for (size_t i = 0; i < pixelsLength; i++)
 	{
-		pixelBuffer[i].z = colorMap[colorMappedPixels[i]].z;
-		pixelBuffer[i].y = colorMap[colorMappedPixels[i]].y;
-		pixelBuffer[i].x = colorMap[colorMappedPixels[i]].x;
-		pixelBuffer[i].w = colorMap[colorMappedPixels[i]].w;
+		pixelBuffer[i] = colorMap[colorMappedPixels[i]];
 	}
 }
 
@@ -370,10 +365,63 @@ void TgaImage::WriteHeaderToFile(std::ofstream& outFile) const
 
 void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 {
-	outFile.seekp(Header::SIZE, std::ios::beg);
-	size_t size = (size_t)(this->header->Width * this->header->Height);
+	switch (this->header->ImageType)
+	{
+	case Header::EImageType::NoImageData:
+		return;
+	case Header::EImageType::UncompressedColorMapped:
+		this->WriteColorMappedPixelDataToFile(outFile);
+		break;
+	case Header::EImageType::UncompressedTrueColor:
+		this->WriteTrueColorPixelDataToFile(outFile);
+		break;
+	case Header::EImageType::UncompressedBlackAndWhite:
+		
+		break;
+	case Header::EImageType::RunLengthEncodedColorMapped:
+		
+		break;
+	case Header::EImageType::RunLengthEncodedTrueColor:
+		
+		break;
+	case Header::EImageType::RunLengthEncodedBlackAndWhite:
+		
+		break;
+	default:
+		
+		return;
+	}
+}
 
-	for (size_t i = 0; i < size; i++)
+void TgaImage::WriteColorMappedPixelDataToFile(std::ofstream& outFile) const
+{
+	outFile.seekp(Header::SIZE, std::ios::beg);
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+
+	for (size_t i = 0; i < this->header->ColorMapLength; i++)
+	{
+		outFile.write((char*)&this->colorMap[i].z, sizeof(uint8_t));
+		outFile.write((char*)&this->colorMap[i].y, sizeof(uint8_t));
+		outFile.write((char*)&this->colorMap[i].x, sizeof(uint8_t));
+
+		if (this->GetAlphaChannelDepth() != 0)
+		{
+			outFile.write((char*)&this->colorMap[i].w, sizeof(uint8_t));
+		}
+	}
+
+	for (size_t i = 0; i < pixelsLength; i++)
+	{
+		outFile.write((char*)&this->colorMappedPixels[i], sizeof(uint8_t));
+	}
+}
+
+void TgaImage::WriteTrueColorPixelDataToFile(std::ofstream& outFile) const
+{
+	outFile.seekp(Header::SIZE, std::ios::beg);
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+
+	for (size_t i = 0; i < pixelsLength; i++)
 	{
 		outFile.write((char*)&this->pixelBuffer[i].z, sizeof(uint8_t));
 		outFile.write((char*)&this->pixelBuffer[i].y, sizeof(uint8_t));
