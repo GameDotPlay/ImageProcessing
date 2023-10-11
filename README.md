@@ -4,7 +4,7 @@ Small console application written in C++ that takes a TGA image as input, applie
 
 ## Development Environment
 
-This program was developed in Visual Studio 2022 v17.7.4 using the C++17 standard.
+This program was developed in Visual Studio 2022 v17.7.4 using the C++20 standard.
 
 External Dependencies: None.
 
@@ -28,8 +28,6 @@ Example usage:
 ## Design / How It Works
 
 The functionality of this application is entirely contained in the `TgaImage` and `Effects` classes.
-
-Other files contain structs defining the different pieces of a TGA file.
 
 The `TgaImage` class is responsible for importing a TGA image from disk, parsing the file into internal fields in memory based on the TGA specification, and saving the image back out to disk.
 
@@ -79,7 +77,7 @@ There are many other methods of choosing `sigma` and `kernelWidth`, I chose thes
 
 One of the challenges of applying the Gaussian Blur effect is how to handle pixels at the edge. If a target pixel is at the edge of an image then much of the kernel will try to sample pixel values that are outside the image and therefore invalid. There are many approaches to handling this including: reflection, filler pixels, ignoring pixels that lie outside x - radius and y - radius, etc. 
 
-In this application I have chosen to omit the calculation of pixels outside the image. If the kernel attempts to sample a pixel outside the image then the value of that pixel does not contribute to the average and we continue processing other pixels under the kernel. The result of this can cause some pixels at the edge of the image to appear darker than the source image. This is because the average that was calculated for that pixel will sum to less than the total intensity of the source pixel. However, I did not find this noticeable in most images. 
+In this application I have chosen to omit the calculation of pixels outside the image. If the kernel attempts to sample a pixel outside the image then the value of that pixel does not contribute to the average and we continue processing other pixels under the kernel. The result of this can cause some pixels at the top and bottoms edges of the image to appear darker than the source image. This is because the average that was calculated for that pixel will sum to less than the total intensity of the source pixel. This is a known issue and is something to improve upon in the future. 
 
 ## Results
 
@@ -87,34 +85,34 @@ The results of passing in various values for the BlurStrength can be seen here:
 
 Original Image:
 
-![earth.tga original](docs/tests/earth.png "earth.tga original")
+![earth.tga original](docs/screenshots/earth.png "earth.tga original")
 
 BlurStrength = 0.2:
 
-![earth.tga blur strength 0.2](docs/tests/earth_blur_0.2.png "earth.tga blur strength 0.2")
+![earth.tga blur strength 0.2](docs/screenshots/earth_blur_0.2.png "earth.tga blur strength 0.2")
 
 BlurStrength = 0.4
 
-![earth.tga blur strength 0.4](docs/tests/earth_blur_0.4.png "earth.tga blur strength 0.4")
+![earth.tga blur strength 0.4](docs/screenshots/earth_blur_0.4.png "earth.tga blur strength 0.4")
 
 BlurStrength = 0.6
 
-![earth.tga blur strength 0.6](docs/tests/earth_blur_0.6.png "earth.tga blur strength 0.6")
+![earth.tga blur strength 0.6](docs/screenshots/earth_blur_0.6.png "earth.tga blur strength 0.6")
 
 BlurStrength = 0.8
 
-![earth.tga blur strength 0.8](docs/tests/earth_blur_0.8.png "earth.tga blur strength 0.8")
+![earth.tga blur strength 0.8](docs/screenshots/earth_blur_0.8.png "earth.tga blur strength 0.8")
 
 BlurStrength = 1.0
 
-![earth.tga blur strength 1.0](docs/tests/earth_blur_1.0.png "earth.tga blur strength 1.0")
+![earth.tga blur strength 1.0](docs/screenshots/earth_blur_1.0.png "earth.tga blur strength 1.0")
 
 ## Areas for Improvement
 
 Possible ways to enhance/expand this application in the future include:
 - **Full TGA support**. Currently this application only supports uncompressed true-color TGA files. Whereas the full tga specification includes 6 possible formats.
 - **More image effects**. Gaussian Blur is only one of several techniques for blurring an image. Support for other effects such as brightness, saturation, sharpening, noise reduction, lense distortion, etc. could also be added to the Effects class.
-- **Support more image formats**. Currently this application only supports uncompressed true-color TGA images. Support could be added for png, jpg, gif, etc. in the future.
+- **Support more image formats**. Currently this application only supports uncompressed true-color TGA images. Support could be added for tif, png, jpg, gif, etc. in the future.
 - **GUI**. Using a GUI library such as DearIMGui would allow the user to see a preview that the effect had on the image before saving it out to a file.
 
 ## Performance Enhancements
