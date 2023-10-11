@@ -5,8 +5,8 @@
 
 struct Vec2
 {
-	uint8_t x;
-	uint8_t y;
+	uint8_t x = 0;
+	uint8_t y = 0;
 
 	bool operator==(const Vec2& other) const
 	{
@@ -17,9 +17,9 @@ struct Vec2
 
 struct Vec3
 {
-	uint8_t x;
-	uint8_t y;
-	uint8_t z;
+	uint8_t x = 0;
+	uint8_t y = 0;
+	uint8_t z = 0;
 
 	bool operator==(const Vec3& other) const
 	{
@@ -31,10 +31,10 @@ struct Vec3
 
 struct Vec4
 {
-	uint8_t x;
-	uint8_t y;
-	uint8_t z;
-	uint8_t w;
+	uint8_t x = 0;
+	uint8_t y = 0;
+	uint8_t z = 0;
+	uint8_t w = 0;
 
 	bool operator==(const Vec4& other) const
 	{
