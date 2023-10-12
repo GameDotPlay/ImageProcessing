@@ -8,22 +8,22 @@ import <unordered_map>;
 
 namespace Tga
 {
-	/** Represents the header field of a TGA image. */
+	/** Enumeration of TGA image types. */
+	export enum EImageType : uint8_t
+	{
+		NoImageData = 0,
+		UncompressedColorMapped = 1,
+		UncompressedTrueColor = 2,
+		UncompressedBlackAndWhite = 3,
+		RunLengthEncodedColorMapped = 9,
+		RunLengthEncodedTrueColor = 10,
+		RunLengthEncodedBlackAndWhite = 11
+	};
+
+	/** Fields of a TGA header. */
 	struct Header
 	{
 		static const uint8_t SIZE = 18;
-
-		/** Enumeration of TGA image types. */
-		enum EImageType : uint8_t
-		{
-			NoImageData = 0,
-			UncompressedColorMapped = 1,
-			UncompressedTrueColor = 2,
-			UncompressedBlackAndWhite = 3,
-			RunLengthEncodedColorMapped = 9,
-			RunLengthEncodedTrueColor = 10,
-			RunLengthEncodedBlackAndWhite = 11
-		};
 
 		uint8_t IdLength = 0;
 		uint8_t ColorMapType = 0;
@@ -41,8 +41,7 @@ namespace Tga
 		uint8_t ImageDescriptor = 0;
 	};
 
-
-	/** Represents a developer tag field of a TGA image. */
+	/** Fields of a TGA developer tag field. */
 	struct DeveloperTag
 	{
 		uint16_t Tag = 0;
@@ -50,14 +49,14 @@ namespace Tga
 		uint32_t FieldSize = 0;
 	};
 
-	/** Represents the developer field of a TGA image. */
+	/** Fields of a TGA developer directory. */
 	struct DeveloperDirectory
 	{
 		uint16_t NumTagsInDirectory = 0;
 		std::vector<DeveloperTag> Tags = {};
 	};
 
-	/** Represents the extensions field of a TGA image. */
+	/** Fields of TGA extension. */
 	struct Extensions
 	{
 		uint16_t ExtensionSize = 0;
@@ -77,10 +76,11 @@ namespace Tga
 		uint8_t AttributesType = 0;
 	};
 
-	/** Represents the footer field of a TGA image. */
+	/** Fields of a TGA footer. */
 	struct Footer
 	{
 		static const uint8_t SIZE = 26;
+		static const uint8_t SIG_SIZE = 18;
 		uint32_t ExtensionAreaOffset = 0;
 		uint32_t DeveloperDirectoryOffset = 0;
 		char Signature[16] = {};
@@ -92,7 +92,6 @@ namespace Tga
 	export class TgaImage
 	{
 	public:
-
 		/**
 		 * Tries to construct a TgaImage from the filename given.
 		 * @param filename The path to a TGA file to load.
@@ -112,7 +111,7 @@ namespace Tga
 		/**
 		 * Get the image type.
 		 */
-		Header::EImageType GetImageType() const;
+		EImageType GetImageType() const;
 
 		/**
 		 * The destructor. Releases any resources.
@@ -120,9 +119,9 @@ namespace Tga
 		~TgaImage();
 
 		/**
-		 * Get the pixel data from the TGA image.
+		 * Get the raw pixel buffer from the TGA image.
 		 */
-		const std::shared_ptr<Vec4[]> const GetPixelData() const;
+		const std::shared_ptr<Vec4[]> const GetPixelBuffer() const;
 
 		/**
 		 * Set the pixel data of the TGA image.
@@ -149,7 +148,7 @@ namespace Tga
 		 * Save the TGA image as a new file at the path given.
 		 * @param filename The path to save the image to.
 		 */
-		void SaveToFile(const std::string& filename) const;
+		void SaveToFile(const std::string& filename);
 
 	private:
 
@@ -173,78 +172,106 @@ namespace Tga
 		/** The footer field of the TGA image. */
 		std::unique_ptr<Footer> footer = nullptr;
 
-		/** The internal pixel data stored as an array of Vec4. */
+		/** Uncompressed pixel data stored as an array of Vec4. */
 		std::shared_ptr<Vec4[]> pixelBuffer = nullptr;
 
+		/** Pixels stored as an index into the colorMap. Only used if ImageType==1 (ColorMapped). */
 		std::shared_ptr<uint8_t[]> colorMappedPixels = nullptr;
 
+		/** A mapping of unique pixel values. Only used if ImageType==1 (ColorMapped). */
 		std::shared_ptr<Vec4[]> colorMap = nullptr;
 
 		/** Default constructor not allowed. */
 		TgaImage() = delete;
 
+		/**
+		 * Parses an uncompressed color mapped TGA image into internal fields.
+		 * @param inStream
+		 */
 		void ParseColorMapped(std::ifstream& inStream);
 
+		/**
+		 * Parses an uncompressed true color TGA image into internal fields.
+		 * @param inStream
+		 */
 		void ParseTrueColor(std::ifstream& inStream);
 
+		/**
+		 * Parses an uncompressed black and white TGA image into internal fields.
+		 * @param inStream
+		 */
 		void ParseBlackWhite(std::ifstream& inStream);
 
+		/**
+		 * Parses a run-length encoded color mapped TGA image into internal fields.
+		 * @param inStream
+		 */
 		void ParseRLEColorMapped(std::ifstream& inStream);
 
+		/**
+		 * Parses a run-length encoded true color TGA image into internal fields.
+		 * @param inStream
+		 */
 		void ParseRLETrueColor(std::ifstream& inStream);
 
+		/**
+		 * Parses a run-length encoded black and white TGA image into internal fields.
+		 * @param inStream
+		 */
 		void ParseRLEBlackWhite(std::ifstream& inStream);
 
-		void PopulateColorMap(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& colorMap);
+		/**
+		 * Populate the internal color map from file.
+		 * @param inStream
+		 */
+		void PopulateColorMap(std::ifstream& inStream);
 
-		void UpdateColorMap();
+		/**
+		 * Update the internal color mapping from the pixelBuffer.
+		 */
+		void UpdateColorMapping();
 
 		/**
 		 * Populate the internal header field from the input stream.
 		 * @param inStream The input stream.
-		 * @param header Pointer to Header struct to populate.
 		 */
-		void PopulateHeader(std::ifstream& inStream, std::unique_ptr<Header>& header);
+		void PopulateHeader(std::ifstream& inStream);
 
 		/**
 		 * Populate the internal footer field from the input stream.
 		 * @param inStream The input stream.
-		 * @param footer Pointer to Footer struct to populate.
 		 */
-		void PopulateFooter(std::ifstream& inStream, std::unique_ptr<Footer>& footer);
+		void PopulateFooter(std::ifstream& inStream);
 
 		/**
 		 * Populate the internal developer field from the input stream.
 		 * @param inStream The input stream.
-		 * @param developerDirectory Pointer to DeveloperDirectory struct to populate.
 		 */
-		void PopulateDeveloperField(std::ifstream& inStream, std::unique_ptr<DeveloperDirectory>& developerDirectory);
+		void PopulateDeveloperField(std::ifstream& inStream);
 
 		/**
 		 * Populate the internal extensions field from the input stream.
 		 * @param inStream The input stream.
-		 * @param extensions Pointer to Extension struct to populate.
 		 */
-		void PopulateExtensions(std::ifstream& inStream, std::unique_ptr<Extensions>& extensions);
-
-		/**
-		 * Populate the uncompressed pixel data from the input stream.
-		 * @param inStream The input stream.
-		 * @param pixelBuffer Pointer to array of pixels.
-		 */
-		void PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<Vec4[]>& pixelBuffer);
+		void PopulateExtensions(std::ifstream& inStream);
 
 		/**
 		 * Populate the color mapped pixel data from the input stream.
 		 * @param inStream The input stream.
-		 * @param colorMappedPixels Pointer to array of indices into the color map.
 		 */
-		void PopulatePixelData(std::ifstream& inStream, const std::shared_ptr<uint8_t[]>& colorMappedPixels);
+		void PopulateColorMappedPixels(std::ifstream& inStream);
 
 		/**
-		 * 
+		 * Populate the uncompressed pixel data from the input stream.
+		 * @param inStream The input stream.
 		 */
-		void PopulatePixelData(const std::shared_ptr<Vec4[]>& colorMap, const std::shared_ptr<uint8_t[]>& colorMappedPixels, const std::shared_ptr<Vec4[]>& pixelBuffer);
+		void PopulatePixelBuffer(std::ifstream& inStream);
+
+		/**
+		 * Takes a color mapping and indices into the color map and populates the raw pixel buffer.
+		 * @param colorMap The color mapping.
+		 */
+		void PopulatePixelBuffer(const std::shared_ptr<Vec4[]>& colorMap);
 
 		/**
 		 * Write the TGA header field to the output stream.
@@ -258,25 +285,33 @@ namespace Tga
 		 */
 		void WritePixelDataToFile(std::ofstream& outFile) const;
 
+		/**
+		 * Writes the color map and the indices into the color map to the output stream.
+		 * @param outFile The output stream to write to.
+		 */
 		void WriteColorMappedPixelDataToFile(std::ofstream& outFile) const;
 
+		/**
+		 * Writes the raw pixel buffer to the output stream.
+		 * @param outFile The output stream to write to.
+		 */
 		void WriteTrueColorPixelDataToFile(std::ofstream& outFile) const;
 
 		/**
 		 * Write the TGA developer field to the output stream.
-		 * @param outFile The output stream.
+		 * @param outFile The output stream to write to.
 		 */
 		void WriteDeveloperDirectoryToFile(std::ofstream& outFile) const;
 
 		/**
 		 * Write the TGA extensions field to the output stream.
-		 * @param outFile The output stream.
+		 * @param outFile The output stream to write to.
 		 */
 		void WriteExtensionsToFile(std::ofstream& outFile) const;
 
 		/**
 		 * Write the TGA footer info to the output stream.
-		 * @param outFile The output stream.
+		 * @param outFile The output stream to write to.
 		 */
 		void WriteFooterToFile(std::ofstream& outFile) const;
 	};
