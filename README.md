@@ -17,7 +17,7 @@ It takes three arguments:
 - ```<PathToOutputFile>``` Path/filename of the output TGA image.
 - ```<BlurStrength>``` A value between 0-1 inclusive indicating how strong the blur effect should be. Higher number gives a stronger blur effect.
 
-If a file path has spaces, please surround the path with ""
+If a file path has spaces, please surround the path with " ".
 
 Example usage:
 
@@ -27,9 +27,9 @@ Example usage:
 
 ## Design / How It Works
 
-The functionality of this application is entirely contained in the `TgaImage` and `Effects` classes.
+The functionality of this application is entirely contained in the `TgaImage` module and `Effects` class.
 
-The `TgaImage` class is responsible for importing a TGA image from disk, parsing the file into internal fields in memory based on the TGA specification, and saving the image back out to disk.
+The `TgaImage` module is responsible for importing a TGA image from disk, parsing the file into internal fields in memory based on the TGA specification, and saving the image back out to disk.
 
 The `Effects` class is a static class of effects that can be applied to a TGA image. Currently only GaussianBlur is implemented, but the class was designed to be easily expanded with more effects.
 
@@ -77,7 +77,7 @@ There are many other methods of choosing `sigma` and `kernelWidth`, I chose thes
 
 One of the challenges of applying the Gaussian Blur effect is how to handle pixels at the edge. If a target pixel is at the edge of an image then much of the kernel will try to sample pixel values that are outside the image and therefore invalid. There are many approaches to handling this including: reflection, filler pixels, ignoring pixels that lie outside x - radius and y - radius, etc. 
 
-In this application I have chosen to omit the calculation of pixels outside the image. If the kernel attempts to sample a pixel outside the image then the value of that pixel does not contribute to the average and we continue processing other pixels under the kernel. The result of this can cause some pixels at the top and bottoms edges of the image to appear darker than the source image. This is because the average that was calculated for that pixel will sum to less than the total intensity of the source pixel. This is a known issue and is something to improve upon in the future. 
+In this application I have chosen to omit the calculation of pixels outside the image. If the kernel attempts to sample a pixel outside the image then the value of that pixel does not contribute to the average and we continue processing other pixels under the kernel. The result of this can cause some pixels at the top and bottom edges of the image to appear darker than the source image. This is because the average that was calculated for that pixel will sum to less than the total intensity of the source pixel. This is a known issue and is something to improve upon in the future. 
 
 ## Results
 
@@ -110,9 +110,9 @@ BlurStrength = 1.0
 ## Areas for Improvement
 
 Possible ways to enhance/expand this application in the future include:
-- **Full TGA support**. Currently this application only supports uncompressed true-color TGA files. Whereas the full tga specification includes 6 possible formats.
+- **Full TGA support**. Currently this application only supports uncompressed color-mapped and true-color TGA files. Whereas the full tga specification includes 6 possible formats.
 - **More image effects**. Gaussian Blur is only one of several techniques for blurring an image. Support for other effects such as brightness, saturation, sharpening, noise reduction, lense distortion, etc. could also be added to the Effects class.
-- **Support more image formats**. Currently this application only supports uncompressed true-color TGA images. Support could be added for tif, png, jpg, gif, etc. in the future.
+- **Support more image formats**. Currently this application only supports uncompressed color-mapped and true-color TGA images. Support could be added for tif, png, jpg, gif, etc. in the future.
 - **GUI**. Using a GUI library such as DearIMGui would allow the user to see a preview that the effect had on the image before saving it out to a file.
 
 ## Performance Enhancements
