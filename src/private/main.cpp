@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelData(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
+	auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
 	auto stop = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
