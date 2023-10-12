@@ -11,7 +11,7 @@ class Effects
 public:
 
 	/**
-	* Applies a Gaussian Blur effect to the given image.
+	* Applies a Gaussian Blur effect to the given pixels.
 	* @param pixels The pixel data to modify.
 	* @param width The width of the pixel data.
 	* @param height The height of the pixel data.
