@@ -297,6 +297,8 @@ namespace Tga
 		 */
 		void WriteTrueColorPixelDataToFile(std::ofstream& outFile) const;
 
+		void WriteBlackWhitePixelDataToFile(std::ofstream& outfile) const;
+
 		/**
 		 * Write the TGA developer field to the output stream.
 		 * @param outFile The output stream to write to.

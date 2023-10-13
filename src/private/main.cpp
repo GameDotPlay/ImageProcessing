@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	Tga::TgaImage tgaImage(inputPath);
 
 	// Only support two TGA formats currently.
-	if (tgaImage.GetImageType() == Tga::UncompressedColorMapped || tgaImage.GetImageType() == Tga::UncompressedTrueColor)
+	if (tgaImage.GetImageType() == Tga::UncompressedColorMapped || tgaImage.GetImageType() == Tga::UncompressedTrueColor || tgaImage.GetImageType() == Tga::UncompressedBlackAndWhite)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);

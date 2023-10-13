@@ -152,7 +152,26 @@ void TgaImage::ParseTrueColor(std::ifstream& inStream)
 
 void TgaImage::ParseBlackWhite(std::ifstream& inStream)
 {
-	// TODO
+	if (!inStream.good())
+	{
+		return;
+	}
+
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+
+	// Go to the pixel data position.
+	inStream.seekg(Header::SIZE, std::ios::beg);
+
+	for (size_t i = 0; i < pixelsLength; i++)
+	{
+		inStream.read((char*)&this->pixelBuffer[i].x, sizeof(uint8_t));
+
+		if (this->header->PixelDepth == 16 && this->GetAlphaChannelDepth() == 8)
+		{
+			inStream.read((char*)&this->pixelBuffer[i].w, sizeof(uint8_t));
+		}
+	}
 }
 
 void TgaImage::ParseRLEColorMapped(std::ifstream& inStream)
@@ -411,7 +430,7 @@ void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 		break;
 
 	case EImageType::UncompressedBlackAndWhite:
-		// TODO.
+		this->WriteBlackWhitePixelDataToFile(outFile);
 		break;
 
 	case EImageType::RunLengthEncodedColorMapped:
@@ -465,7 +484,23 @@ void TgaImage::WriteTrueColorPixelDataToFile(std::ofstream& outFile) const
 		outFile.write((char*)&this->pixelBuffer[i].y, sizeof(uint8_t));
 		outFile.write((char*)&this->pixelBuffer[i].x, sizeof(uint8_t));
 
-		if (this->GetAlphaChannelDepth() != 0)
+		if (this->GetAlphaChannelDepth() == 8)
+		{
+			outFile.write((char*)&this->pixelBuffer[i].w, sizeof(uint8_t));
+		}
+	}
+}
+
+void TgaImage::WriteBlackWhitePixelDataToFile(std::ofstream& outFile) const
+{
+	outFile.seekp(Header::SIZE, std::ios::beg);
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+
+	for (size_t i = 0; i < pixelsLength; i++)
+	{
+		outFile.write((char*)&this->pixelBuffer[i].x, sizeof(uint8_t));
+
+		if (this->header->PixelDepth == 16 && this->GetAlphaChannelDepth() == 8)
 		{
 			outFile.write((char*)&this->pixelBuffer[i].w, sizeof(uint8_t));
 		}
