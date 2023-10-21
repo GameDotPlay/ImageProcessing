@@ -148,7 +148,7 @@ namespace Tga
 		 * Save the TGA image as a new file at the path given.
 		 * @param filename The path to save the image to.
 		 */
-		void SaveToFile(const std::string& filename);
+		void SaveToFile(const std::string& filename, const EImageType fileFormat);
 
 	private:
 
@@ -158,6 +158,14 @@ namespace Tga
 			AlphaDepth = 0xF,
 			RightToLeftOrdering = 0x10,
 			TopToBottomOrdering = 0x20
+		};
+
+		/** Enumeration of TGA run-length packet repetition count masks. */
+		enum EPacketMask : uint8_t
+		{
+			RawPacket = 0,
+			RunLengthPacket = 0x80,
+			PixelCount = 0x7F
 		};
 
 		/** The header of the TGA image. */
@@ -297,7 +305,31 @@ namespace Tga
 		 */
 		void WriteTrueColorPixelDataToFile(std::ofstream& outFile) const;
 
+		/**
+		 * Writes the pixel data to the output stream.
+		 * @param outfile The output stream to write to.
+		 */
 		void WriteBlackWhitePixelDataToFile(std::ofstream& outfile) const;
+
+		/**
+		 * Encodes a true color run length packet.
+		 * @param i Index into the pixelBuffer data.
+		 * @return An encoded run length packet.
+		 */
+		std::vector<uint8_t> EncodeRunLengthPacket(size_t& i) const;
+
+		/**
+		 * Encodes a true color raw packet.
+		 * @param i Index into the pixelBuffer data.
+		 * @return An encoded raw packet.
+		 */
+		std::vector<uint8_t> EncodeRawPacket(size_t& i) const;
+
+		/**
+		 * Write encoded true color packets to the output stream.
+		 * @param outFile The output stream to write to.
+		 */
+		void WriteEncodedTrueColorPixelDataToFile(std::ofstream& outFile) const;
 
 		/**
 		 * Write the TGA developer field to the output stream.

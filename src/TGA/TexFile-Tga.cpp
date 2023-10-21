@@ -81,7 +81,7 @@ uint8_t TgaImage::GetAlphaChannelDepth() const
 	return this->header->ImageDescriptor & EImageDescriptorMask::AlphaDepth;
 }
 
-void TgaImage::SaveToFile(const std::string& filename)
+void TgaImage::SaveToFile(const std::string& filename, const EImageType fileFormat)
 {
 	std::ofstream outFile(filename, std::ios::out | std::ios::binary);
 
@@ -89,6 +89,8 @@ void TgaImage::SaveToFile(const std::string& filename)
 	{
 		return;
 	}
+
+	this->header->ImageType = fileFormat;
 
 	if (this->header->ImageType == EImageType::UncompressedColorMapped)
 	{
@@ -181,7 +183,62 @@ void TgaImage::ParseRLEColorMapped(std::ifstream& inStream)
 
 void TgaImage::ParseRLETrueColor(std::ifstream& inStream)
 {
-	// TODO
+	if (!inStream.good())
+	{
+		return;
+	}
+
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+
+	// Go to the pixel data position.
+	inStream.seekg(Header::SIZE, std::ios::beg);
+
+	size_t i = 0;
+	while (i < pixelsLength)
+	{
+		uint8_t packet = 0;
+		inStream.read((char*)&packet, sizeof(uint8_t));
+
+		uint8_t pixelCount = (packet & EPacketMask::PixelCount) + 1;
+
+		if (packet & EPacketMask::RunLengthPacket)
+		{
+			Vec4 pixelValue = {};
+			inStream.read((char*)&pixelValue.z, sizeof(uint8_t));
+			inStream.read((char*)&pixelValue.y, sizeof(uint8_t));
+			inStream.read((char*)&pixelValue.x, sizeof(uint8_t));
+
+			if (this->GetAlphaChannelDepth() == 8) // 32 bit pixels
+			{
+				inStream.read((char*)&pixelValue.w, sizeof(uint8_t));
+			}
+
+			// Run length packet.
+			for (size_t j = 0; j < pixelCount; j++)
+			{
+				this->pixelBuffer[i] = pixelValue;
+				i++;
+			}
+		}
+		else
+		{
+			// Raw packet.
+			for (size_t j = 0; j < pixelCount; j++)
+			{
+				inStream.read((char*)&this->pixelBuffer[i].z, sizeof(uint8_t));
+				inStream.read((char*)&this->pixelBuffer[i].y, sizeof(uint8_t));
+				inStream.read((char*)&this->pixelBuffer[i].x, sizeof(uint8_t));
+
+				if (this->GetAlphaChannelDepth() == 8) // 32 bit pixels
+				{
+					inStream.read((char*)&this->pixelBuffer[i].w, sizeof(uint8_t));
+				}
+
+				i++;
+			}
+		}
+	}
 }
 
 void TgaImage::ParseRLEBlackWhite(std::ifstream& inStream)
@@ -362,6 +419,10 @@ void TgaImage::PopulateExtensions(std::ifstream& inStream)
 
 void TgaImage::UpdateColorMapping()
 {
+	this->header->ColorMapEntrySize = this->header->PixelDepth;
+	this->header->ColorMapFirstEntryIndex = 0;
+	this->header->ColorMapType = 1;
+
 	size_t pixelsLength = (size_t)this->header->Width * this->header->Height;
 	std::unordered_map<Vec4, size_t> newMap;
 
@@ -438,7 +499,7 @@ void TgaImage::WritePixelDataToFile(std::ofstream& outFile) const
 		break;
 
 	case EImageType::RunLengthEncodedTrueColor:
-		// TODO.
+		this->WriteEncodedTrueColorPixelDataToFile(outFile);
 		break;
 
 	case EImageType::RunLengthEncodedBlackAndWhite:
@@ -505,6 +566,103 @@ void TgaImage::WriteBlackWhitePixelDataToFile(std::ofstream& outFile) const
 			outFile.write((char*)&this->pixelBuffer[i].w, sizeof(uint8_t));
 		}
 	}
+}
+
+void TgaImage::WriteEncodedTrueColorPixelDataToFile(std::ofstream& outFile) const
+{
+	outFile.seekp(Header::SIZE, std::ios::beg);
+	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
+
+	size_t i = 0;
+	while (i < pixelsLength)
+	{
+		std::vector<uint8_t> packet = {};
+		if (this->pixelBuffer[i] == this->pixelBuffer[i + 1])
+		{
+			packet = this->EncodeRunLengthPacket(i);
+		}
+		else
+		{
+			packet = this->EncodeRawPacket(i);
+		}
+
+		outFile.write((char*)packet.data(), packet.size());
+	}
+}
+
+std::vector<uint8_t> TgaImage::EncodeRunLengthPacket(size_t& i) const
+{
+	std::vector<uint8_t> packet = {};
+	uint8_t runLengthBit = EPacketMask::RunLengthPacket;
+	uint8_t count = 0;
+	uint8_t j = 1;
+
+	while (count < 127 && (this->pixelBuffer[i] == this->pixelBuffer[i + j]))
+	{
+		count++;
+		j++;
+
+		if ((i + j) % (this->header->Width - 1) == 0)
+		{
+			// Packets should not cross scan lines. TGA 2.0 spec.
+			break;
+		}
+	}
+
+	uint8_t repititionCountField = runLengthBit | count;
+	packet.push_back(repititionCountField);
+
+	packet.push_back(this->pixelBuffer[i].z);
+	packet.push_back(this->pixelBuffer[i].y);
+	packet.push_back(this->pixelBuffer[i].x);
+
+	if (this->GetAlphaChannelDepth() == 8)
+	{
+		packet.push_back(this->pixelBuffer[i].w);
+	}
+
+	i += count + 1;
+
+	return packet;
+}
+
+std::vector<uint8_t> TgaImage::EncodeRawPacket(size_t& i) const
+{
+	std::vector<uint8_t> packet = {};
+	uint8_t runLengthBit = EPacketMask::RawPacket;
+	uint8_t count = 0;
+	size_t currentI = i;
+
+	while (count < 127 && (this->pixelBuffer[currentI] != this->pixelBuffer[currentI + 1]))
+	{
+		count++;
+		currentI++;
+
+		if ((currentI + 1) % (this->header->Width - 1) == 0)
+		{
+			// Packets should not cross scan lines. TGA 2.0 spec.
+			break;
+		}
+	}
+
+	uint8_t repititionCountField = runLengthBit | count;
+	packet.push_back(repititionCountField);
+
+	for (size_t k = 0; k <= count; k++)
+	{
+		packet.push_back(this->pixelBuffer[i].z);
+		packet.push_back(this->pixelBuffer[i].y);
+		packet.push_back(this->pixelBuffer[i].x);
+
+		if (this->GetAlphaChannelDepth() == 8)
+		{
+			packet.push_back(this->pixelBuffer[i].w);
+		}
+
+		i++;
+	}
+
+	return packet;
 }
 
 void TgaImage::WriteDeveloperDirectoryToFile(std::ofstream& outFile) const

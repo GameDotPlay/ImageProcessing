@@ -20,8 +20,14 @@ int main(int argc, char** argv)
 
 	Tga::TgaImage tgaImage(inputPath);
 
-	// Only support two TGA formats currently.
-	if (tgaImage.GetImageType() == Tga::UncompressedColorMapped || tgaImage.GetImageType() == Tga::UncompressedTrueColor || tgaImage.GetImageType() == Tga::UncompressedBlackAndWhite)
+	// Only support four TGA formats currently.
+	if (tgaImage.GetImageType() == Tga::RunLengthEncodedColorMapped || tgaImage.GetImageType() == Tga::RunLengthEncodedBlackAndWhite)
+	{
+		std::cout << "An error occurred while parsing image or image format not supported" << inputPath << std::endl;
+		std::cout << "Verify correct image path or try a different image." << std::endl;
+		return -1;
+	}
+	else
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
@@ -30,15 +36,9 @@ int main(int argc, char** argv)
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
 		tgaImage.SetPixelData(blurredPixels);
-		tgaImage.SaveToFile(outputPath);
+		tgaImage.SaveToFile(outputPath, Tga::RunLengthEncodedTrueColor);
 
 		std::cout << "New image saved to " << outputPath << std::endl;
 		std::cout << "Gaussian Blur runtime: " << duration.count() << "ms";
-	}
-	else
-	{
-		std::cout << "An error occurred while parsing image or image format not supported" << inputPath << std::endl;
-		std::cout << "Verify correct image path or try a different image." << std::endl;
-		return -1;
 	}
 }
