@@ -110,7 +110,7 @@ BlurStrength = 1.0
 ## Areas for Improvement
 
 Possible ways to enhance/expand this application in the future include:
-- **Full TGA support**. Currently this application only supports uncompressed color-mapped and true-color TGA files. Whereas the full tga specification includes 6 possible formats.
+- **Full TGA support**. Now supports all TGA file types except run-length encoded color-mapped. 
 - **More image effects**. Gaussian Blur is only one of several techniques for blurring an image. Support for other effects such as brightness, saturation, sharpening, noise reduction, lense distortion, etc. could also be added to the Effects class.
 - **Support more image formats**. Currently this application only supports uncompressed color-mapped and true-color TGA images. Support could be added for tif, png, jpg, gif, etc. in the future.
 - **GUI**. Using a GUI library such as DearIMGui would allow the user to see a preview that the effect had on the image before saving it out to a file.
