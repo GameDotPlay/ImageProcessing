@@ -211,12 +211,6 @@ namespace Tga
 		void ParseBlackWhite(std::ifstream& inStream);
 
 		/**
-		 * Parses a run-length encoded color mapped TGA image into internal fields.
-		 * @param inStream
-		 */
-		void ParseRLEColorMapped(std::ifstream& inStream);
-
-		/**
 		 * Parses a run-length encoded true color TGA image into internal fields.
 		 * @param inStream
 		 */
@@ -316,20 +310,40 @@ namespace Tga
 		 * @param i Index into the pixelBuffer data.
 		 * @return An encoded run length packet.
 		 */
-		std::vector<uint8_t> EncodeRunLengthPacket(size_t& i) const;
+		std::vector<uint8_t> EncodeTrueColorRunLengthPacket(size_t& i) const;
 
 		/**
 		 * Encodes a true color raw packet.
 		 * @param i Index into the pixelBuffer data.
 		 * @return An encoded raw packet.
 		 */
-		std::vector<uint8_t> EncodeRawPacket(size_t& i) const;
+		std::vector<uint8_t> EncodeTrueColorRawPacket(size_t& i) const;
+
+		/**
+		 * Encodes a black and white run length packet.
+		 * @param i Index into the pixelBuffer data.
+		 * @return An encoded run length packet.
+		 */
+		std::vector<uint8_t> EncodeBlackWhiteRunLengthPacket(size_t& i) const;
+
+		/**
+		 * Encodes a black and white raw packet.
+		 * @param i Index into the pixelBuffer data.
+		 * @return An encoded raw packet.
+		 */
+		std::vector<uint8_t> EncodeBlackWhiteRawPacket(size_t& i) const;
 
 		/**
 		 * Write encoded true color packets to the output stream.
 		 * @param outFile The output stream to write to.
 		 */
 		void WriteEncodedTrueColorPixelDataToFile(std::ofstream& outFile) const;
+
+		/**
+		 * Write encoded black and white packets to the output stream.
+		 * @param outFile The output stream to write to.
+		 */
+		void WriteEncodedBlackWhitePixelDataToFile(std::ofstream& outFile) const;
 
 		/**
 		 * Write the TGA developer field to the output stream.
