@@ -20,8 +20,8 @@ int main(int argc, char** argv)
 
 	Tga::TgaImage tgaImage(inputPath);
 
-	// Only support four TGA formats currently.
-	if (tgaImage.GetImageType() == Tga::RunLengthEncodedColorMapped || tgaImage.GetImageType() == Tga::RunLengthEncodedBlackAndWhite)
+	// Does not support run length encoded color mapped images.
+	if (tgaImage.GetImageType() == Tga::RunLengthEncodedColorMapped || tgaImage.GetImageType() == Tga::NoImageData)
 	{
 		std::cout << "An error occurred while parsing image or image format not supported" << inputPath << std::endl;
 		std::cout << "Verify correct image path or try a different image." << std::endl;
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
 		tgaImage.SetPixelData(blurredPixels);
-		tgaImage.SaveToFile(outputPath, Tga::RunLengthEncodedTrueColor);
+		tgaImage.SaveToFile(outputPath, tgaImage.GetImageType());
 
 		std::cout << "New image saved to " << outputPath << std::endl;
 		std::cout << "Gaussian Blur runtime: " << duration.count() << "ms";
