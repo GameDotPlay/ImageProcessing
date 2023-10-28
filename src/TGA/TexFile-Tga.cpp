@@ -149,6 +149,11 @@ void TgaImage::PopulateColorMap(std::ifstream& inStream)
 
 void TgaImage::ParseTrueColor(std::ifstream& inStream)
 {
+	if (!inStream.good())
+	{
+		return;
+	}
+
 	this->PopulatePixelBuffer(inStream);
 }
 
