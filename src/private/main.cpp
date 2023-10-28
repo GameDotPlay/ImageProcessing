@@ -27,18 +27,16 @@ int main(int argc, char** argv)
 		std::cout << "Verify correct image path or try a different image." << std::endl;
 		return -1;
 	}
-	else
-	{
-		auto start = std::chrono::high_resolution_clock::now();
-		auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
-		auto stop = std::chrono::high_resolution_clock::now();
+	
+	auto start = std::chrono::high_resolution_clock::now();
+	auto blurredPixels = Effects::GaussianBlurSeparate(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
+	auto stop = std::chrono::high_resolution_clock::now();
 
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-		tgaImage.SetPixelData(blurredPixels);
-		tgaImage.SaveToFile(outputPath, tgaImage.GetImageType());
+	tgaImage.SetPixelData(blurredPixels);
+	tgaImage.SaveToFile(outputPath, tgaImage.GetImageType());
 
-		std::cout << "New image saved to " << outputPath << std::endl;
-		std::cout << "Gaussian Blur runtime: " << duration.count() << "ms";
-	}
+	std::cout << "New image saved to " << outputPath << std::endl;
+	std::cout << "Gaussian Blur runtime: " << duration.count() << "ms";
 }
