@@ -32,14 +32,6 @@ private:
 	~Effects() = delete;
 
 	/**
-    * Creates a normalized Gaussian matrix of values.
-    * @param radius The radius of the kernel. Higher value gives stronger blurring effect.
-    * @param sigma The standard deviation to use for the kernel. Higher value gives stronger blurring effect.
-    * @return The normalized Gaussian matrix.
-    */
-	static std::vector<std::vector<float>> GetGaussianMatrix(const int32_t radius, const float sigma);
-
-	/**
 	* Creates a normalized 1D Gaussian matrix of values.
 	* @param radius The radius of the kernel. Higher value gives stronger blurring effect.
 	* @param sigma The standard deviation to use for the kernel. Higher value gives stronger blurring effect.
