@@ -28,10 +28,8 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	Tga::TgaImage tgaImage(inputPath);
-
-	// Does not support run length encoded color mapped images.
-	if (tgaImage.GetImageType() == Tga::RunLengthEncodedColorMapped || tgaImage.GetImageType() == Tga::NoImageData)
+	Tga::TgaImage tgaImage;
+	if (tgaImage.LoadFromFile(inputPath) != Tga::EErrorCode::NoError)
 	{
 		std::cout << "An error occurred while parsing image or image format not supported" << inputPath << std::endl;
 		std::cout << "Verify correct image path or try a different image." << std::endl;
