@@ -90,42 +90,6 @@ std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]
 	return newPixels;
 }
 
-std::vector<std::vector<float>> Effects::GetGaussianMatrix(const int32_t radius, const float sigma)
-{
-	// Kernel width is a function of the radius passed in.
-	// But we always want a width of at least 3, and width should be odd so there is always a center pixel.
-	size_t kernelWidth = std::max(((2 * radius) + 1), 3);
-
-	// Calculate Gaussian values for the kernel matrix.
-	std::vector<std::vector<float>> kernel(kernelWidth, std::vector<float>(kernelWidth));
-	float sum = 0.0f;
-	for (int32_t y = -radius; y <= radius; y++)
-	{
-		for (int32_t x = -radius; x <= radius; x++)
-		{
-			float exponentNumerator = -(float)((x * x) + (y * y));
-			float exponentDenominator = 2.0f * (sigma * sigma);
-
-			float eExpression = exp(exponentNumerator / exponentDenominator);
-			float kernelValue = eExpression / (2.0f * (float)M_PI * (sigma * sigma));
-
-			kernel[x + radius][y + radius] = kernelValue;
-			sum += kernelValue;
-		}
-	}
-
-	// Normalize kernel values to between 0 and 1.
-	for (size_t y = 0; y < kernelWidth; y++)
-	{
-		for (size_t x = 0; x < kernelWidth; x++)
-		{
-			kernel[x][y] /= sum;
-		}
-	}
-
-	return kernel;
-}
-
 std::vector<float> Effects::Get1DMatrix(const int32_t radius, const float sigma)
 {
 	// Kernel width is a function of the radius passed in.
