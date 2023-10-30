@@ -7,26 +7,24 @@
 std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
 {
 	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
-
-	// Create pixel data to store new pixel values;
 	size_t length = width * height;
 	std::unique_ptr<Vec4[]> newPixels = std::make_unique<Vec4[]>(length);
 
 	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
-	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
-	int32_t radius = std::max((int)round(10 * blurAmount), 1);
+	// A value of 20 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
+	int32_t radius = std::max((int)round(20 * blurAmount), 1);
 
 	// Scale the sigma value by the blurAmount, but we always want a sigma of at least 1.
-	// A value of 10 is chosen here as a reasonable maximum value for sigma to get a near-unrecognizable image at blurAmount = 1
-	float sigma = std::max(10.0f * blurAmount, 1.0f);
+	// A value of 20 is chosen here as a reasonable maximum value for sigma to get a near-unrecognizable image at blurAmount = 1
+	float sigma = std::max(20.0f * blurAmount, 1.0f);
 
 	std::vector<float> kernel = Effects::Get1DMatrix(radius, sigma);
 
-	// Apply a 1D kernel in the horizontal orientation to all pixels.
 	for (size_t pixelIndex = 0; pixelIndex < length; pixelIndex++)
 	{
 		Vec4f pixel = {};
 
+		// Apply a 1D kernel in the horizontal orientation to all pixels.
 		for (int32_t kernelColumn = -radius; kernelColumn <= radius; kernelColumn++)
 		{
 			float kernelValue = kernel[kernelColumn + radius];
