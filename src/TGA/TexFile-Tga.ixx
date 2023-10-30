@@ -127,7 +127,7 @@ namespace Tga
 		 * Set the pixel data of the TGA image.
 		 * @param newPixels The new pixel data. Must be same size as original pixel data.
 		 */
-		void SetPixelData(const std::shared_ptr<Vec4[]>& newPixels);
+		void SetPixelData(std::unique_ptr<Vec4[]> newPixels);
 
 		/**
 		 * Indicates the right-to-left pixel ordering of the TGA image.

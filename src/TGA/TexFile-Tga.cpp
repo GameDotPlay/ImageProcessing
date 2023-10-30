@@ -61,9 +61,9 @@ TgaImage::TgaImage(const std::string& filename)
 
 TgaImage::~TgaImage() { }
 
-void TgaImage::SetPixelData(const std::shared_ptr<Vec4[]>& newPixels)
+void TgaImage::SetPixelData(std::unique_ptr<Vec4[]> newPixels)
 {
-	this->pixelBuffer = newPixels;
+	this->pixelBuffer = std::move(newPixels);
 }
 
 bool TgaImage::IsRightToLeftPixelOrder() const
