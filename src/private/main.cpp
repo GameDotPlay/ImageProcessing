@@ -29,12 +29,12 @@ int main(int argc, char** argv)
 	}
 	
 	auto start = std::chrono::high_resolution_clock::now();
-	auto blurredPixels = Effects::GaussianBlurSeparate(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
+	auto blurredPixels = Effects::GaussianBlur(tgaImage.GetPixelBuffer(), tgaImage.GetWidth(), tgaImage.GetHeight(), blurValue);
 	auto stop = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-	tgaImage.SetPixelData(blurredPixels);
+	tgaImage.SetPixelData(std::move(blurredPixels));
 	tgaImage.SaveToFile(outputPath, tgaImage.GetImageType());
 
 	std::cout << "New image saved to " << outputPath << std::endl;
