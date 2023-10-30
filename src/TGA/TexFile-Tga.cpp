@@ -6,13 +6,14 @@ module TexFile:Tga;
 
 using namespace Tga;
 
-TgaImage::TgaImage(const std::string& filename)
+EErrorCode TgaImage::LoadFromFile(const std::string& filename)
 {
 	std::ifstream inStream(filename, std::ios::in | std::ios::binary);
 
 	if (!inStream.good())
 	{
-		return;
+		inStream.close();
+		EErrorCode::FilePath;
 	}
 
 	this->PopulateHeader(inStream);
@@ -20,6 +21,8 @@ TgaImage::TgaImage(const std::string& filename)
 	switch (this->header->ImageType)
 	{
 	case EImageType::NoImageData:
+		inStream.close();
+		return EErrorCode::NoImageDataOrTypeNotSupported;
 		break;
 
 	case EImageType::UncompressedColorMapped:
@@ -36,6 +39,8 @@ TgaImage::TgaImage(const std::string& filename)
 
 	case EImageType::RunLengthEncodedColorMapped:
 		// Will not implement.
+		inStream.close();
+		return EErrorCode::NoImageDataOrTypeNotSupported;
 		break;
 
 	case EImageType::RunLengthEncodedTrueColor:
@@ -48,6 +53,8 @@ TgaImage::TgaImage(const std::string& filename)
 
 	default:
 		this->header->ImageType = EImageType::NoImageData;
+		inStream.close();
+		return EErrorCode::NoImageDataOrTypeNotSupported;
 		break;
 	}
 
@@ -57,6 +64,7 @@ TgaImage::TgaImage(const std::string& filename)
 	this->PopulateExtensions(inStream);
 
 	inStream.close();
+	return EErrorCode::NoError;
 }
 
 TgaImage::~TgaImage() { }
@@ -495,7 +503,7 @@ void TgaImage::UpdateColorMapping()
 		this->colorMap[entry.second] = entry.first;
 	}
 
-	this->header->ColorMapLength = newMap.size();
+	this->header->ColorMapLength = (uint16_t)newMap.size();
 
 	for (size_t i = 0; i < pixelsLength; i++)
 	{
@@ -870,7 +878,7 @@ void TgaImage::WriteFooterToFile(std::ofstream& outFile) const
 	outFile.write((char*)&this->footer->ZeroTerminator, sizeof(uint8_t));
 }
 
-const std::shared_ptr<Vec4[]> const TgaImage::GetPixelBuffer() const
+const std::shared_ptr<Vec4[]> TgaImage::GetPixelBuffer() const
 {
 	return this->pixelBuffer;
 }

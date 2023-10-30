@@ -20,6 +20,14 @@ namespace Tga
 		RunLengthEncodedBlackAndWhite = 11
 	};
 
+	/** Enumeration of possible error codes to return. */
+	export enum EErrorCode : int8_t
+	{
+		NoError = 0,
+		FilePath = -1,
+		NoImageDataOrTypeNotSupported = -2
+	};
+
 	/** Fields of a TGA header. */
 	struct Header
 	{
@@ -92,11 +100,12 @@ namespace Tga
 	export class TgaImage
 	{
 	public:
+
 		/**
-		 * Tries to construct a TgaImage from the filename given.
+		 * Loads a TGA image from file.
 		 * @param filename The path to a TGA file to load.
 		 */
-		TgaImage(const std::string& filename);
+		EErrorCode LoadFromFile(const std::string& filename);
 
 		/**
 		 * Get the width of the image.
@@ -121,7 +130,7 @@ namespace Tga
 		/**
 		 * Get the raw pixel buffer from the TGA image.
 		 */
-		const std::shared_ptr<Vec4[]> const GetPixelBuffer() const;
+		const std::shared_ptr<Vec4[]> GetPixelBuffer() const;
 
 		/**
 		 * Set the pixel data of the TGA image.
@@ -188,9 +197,6 @@ namespace Tga
 
 		/** A mapping of unique pixel values. Only used if ImageType==1 (ColorMapped). */
 		std::shared_ptr<Vec4[]> colorMap = nullptr;
-
-		/** Default constructor not allowed. */
-		TgaImage() = delete;
 
 		/**
 		 * Parses an uncompressed color mapped TGA image into internal fields.
