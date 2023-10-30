@@ -17,16 +17,7 @@ public:
 	* @param height The height of the pixel data.
 	* @param blurAmount Value of 0-1 inclusive. Higher value gives stronger blur effect.
 	*/
-	static std::shared_ptr<Vec4[]> const GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount);
-
-	/**
-	* Applies a Gaussian Blur effect to the given pixels.
-	* @param pixels The pixel data to modify.
-	* @param width The width of the pixel data.
-	* @param height The height of the pixel data.
-	* @param blurAmount Value of 0-1 inclusive. Higher value gives stronger blur effect.
-	*/
-	static std::shared_ptr<Vec4[]> const GaussianBlurSeparate(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount);
+	static std::unique_ptr<Vec4[]> const GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount);
 
 private:
 

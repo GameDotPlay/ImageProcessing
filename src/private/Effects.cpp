@@ -4,65 +4,13 @@
 #include <algorithm>
 #include <corecrt_math_defines.h>
 
-std::shared_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
+std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
 {
 	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
 
 	// Create pixel data to store new pixel values;
 	size_t length = width * height;
-	std::shared_ptr<Vec4[]> newPixels = std::make_shared<Vec4[]>(length);
-
-	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
-	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
-	int32_t radius = std::max((int)round(10 * blurAmount), 1);
-
-	// Scale the sigma value by the blurAmount, but we always want a sigma of at least 1.
-	// A value of 10 is chosen here as a reasonable maximum value for sigma to get a near-unrecognizable image at blurAmount = 1
-	float sigma = std::max(10.0f * blurAmount, 1.0f);
-
-	std::vector<std::vector<float>> kernel = Effects::GetGaussianMatrix(radius, sigma);
-
-	// Apply filter to each pixel in the image.
-	for (size_t pixelIndex = 0; pixelIndex < length; pixelIndex++)
-	{
-		Vec4f newPixel = {};
-
-		for (int32_t kernelY = -radius; kernelY <= radius; kernelY++)
-		{
-			for (int32_t kernelX = -radius; kernelX <= radius; kernelX++)
-			{
-				float kernelValue = kernel[kernelY + radius][kernelX + radius];
-				int32_t kernelSamplePixelIndex = (pixelIndex + kernelX) + (width * kernelY);
-
-				// If the kernel tries to process a pixel outside of the image, just continue.
-				if (kernelSamplePixelIndex < 0 || kernelSamplePixelIndex > length - 1)
-				{
-					continue;
-				}
-
-				newPixel.x += (float)pixels[kernelSamplePixelIndex].x * kernelValue;
-				newPixel.y += (float)pixels[kernelSamplePixelIndex].y * kernelValue;
-				newPixel.z += (float)pixels[kernelSamplePixelIndex].z * kernelValue;
-				newPixel.w += (float)pixels[kernelSamplePixelIndex].w * kernelValue;
-			}
-		}
-
-		newPixels[pixelIndex].x = round(newPixel.x);
-		newPixels[pixelIndex].y = round(newPixel.y);
-		newPixels[pixelIndex].z = round(newPixel.z);
-		newPixels[pixelIndex].w = round(newPixel.w);
-	}
-
-	return newPixels;
-}
-
-std::shared_ptr<Vec4[]> const Effects::GaussianBlurSeparate(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
-{
-	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
-
-	// Create pixel data to store new pixel values;
-	size_t length = width * height;
-	std::shared_ptr<Vec4[]> newPixels = std::make_shared<Vec4[]>(length);
+	std::unique_ptr<Vec4[]> newPixels = std::make_unique<Vec4[]>(length);
 
 	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
 	// A value of 10 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
@@ -84,14 +32,15 @@ std::shared_ptr<Vec4[]> const Effects::GaussianBlurSeparate(const std::shared_pt
 			float kernelValue = kernel[kernelColumn + radius];
 			int32_t kernelSamplePixelIndex = pixelIndex + kernelColumn;
 
-			// If the kernel tries to process a pixel outside of the image, give it the value of the closest valid pixel.
+			// If the kernel tries to sample a pixel outside of the image, reflect the index value back into the image.
 			if (kernelSamplePixelIndex < 0)
 			{
-				kernelSamplePixelIndex = 0;
+				kernelSamplePixelIndex = -kernelSamplePixelIndex;
 			}
 			else if (kernelSamplePixelIndex >= length)
 			{
-				kernelSamplePixelIndex = length - 1;
+				auto temp = kernelSamplePixelIndex - length;
+				kernelSamplePixelIndex -= temp * 2;
 			}
 
 			pixel.x += (float)pixels[kernelSamplePixelIndex].x * kernelValue;
@@ -115,14 +64,15 @@ std::shared_ptr<Vec4[]> const Effects::GaussianBlurSeparate(const std::shared_pt
 			float kernelValue = kernel[kernelRow + radius];
 			int32_t kernelSamplePixelIndex = pixelIndex + (width * kernelRow);
 
-			// If the kernel tries to process a pixel outside of the image, give it the value of the closest valid pixel.
+			// If the kernel tries to sample a pixel outside of the image, reflect the index value back into the image.
 			if (kernelSamplePixelIndex < 0)
 			{
-				kernelSamplePixelIndex = 0;
+				kernelSamplePixelIndex = -kernelSamplePixelIndex;
 			}
 			else if (kernelSamplePixelIndex >= length)
 			{
-				kernelSamplePixelIndex = length - 1;
+				auto temp = kernelSamplePixelIndex - length;
+				kernelSamplePixelIndex -= temp * 2;
 			}
 
 			pixel.x += (float)newPixels[kernelSamplePixelIndex].x * kernelValue;
