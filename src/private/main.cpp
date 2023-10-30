@@ -16,7 +16,17 @@ int main(int argc, char** argv)
 
 	std::string inputPath = argv[1];
 	std::string outputPath = argv[2];
-	float blurValue = std::stof(argv[3]);
+	float blurValue = 0.0f;
+
+	try
+	{
+		blurValue = std::stof(argv[3]);
+	}
+	catch (const std::exception&)
+	{
+		std::cout << "Incorrect argument for blur strength. Please enter a number [0-1]. e.g. 0.5" << std::endl;
+		return -1;
+	}
 
 	Tga::TgaImage tgaImage(inputPath);
 
