@@ -15,74 +15,81 @@ std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]
 	int32_t radius = std::max((int)round(20 * blurAmount), 1);
 
 	// Scale the sigma value by the blurAmount, but we always want a sigma of at least 1.
-	// A value of 20 is chosen here as a reasonable maximum value for sigma to get a near-unrecognizable image at blurAmount = 1
-	float sigma = std::max(20.0f * blurAmount, 1.0f);
+	// A value of 10 is chosen here as a reasonable maximum value for sigma to get a near-unrecognizable image at blurAmount = 1
+	float sigma = std::max(10.0f * blurAmount, 1.0f);
 
 	std::vector<float> kernel = Effects::Get1DMatrix(radius, sigma);
 
-	for (size_t pixelIndex = 0; pixelIndex < length; pixelIndex++)
+	// Apply a 1D kernel in the horizontal orientation to all pixels.
+	for (size_t i = 0; i < height; i++)
 	{
-		Vec4f pixel = {};
-
-		// Apply a 1D kernel in the horizontal orientation to all pixels.
-		for (int32_t kernelColumn = -radius; kernelColumn <= radius; kernelColumn++)
+		for (size_t j = 0; j < width; j++)
 		{
-			float kernelValue = kernel[kernelColumn + radius];
-			int32_t kernelSamplePixelIndex = pixelIndex + kernelColumn;
+			Vec4f pixel = {};
+			size_t pixelIndex = j + (i * height);
 
-			// If the kernel tries to sample a pixel outside of the image, reflect the index value back into the image.
-			if (kernelSamplePixelIndex < 0)
+			for (int32_t kernelColumn = -radius; kernelColumn <= radius; kernelColumn++)
 			{
-				kernelSamplePixelIndex = -kernelSamplePixelIndex;
-			}
-			else if (kernelSamplePixelIndex >= length)
-			{
-				auto temp = kernelSamplePixelIndex - length;
-				kernelSamplePixelIndex -= temp * 2;
+				int32_t kernelSamplePixelIndex = pixelIndex + kernelColumn;
+
+				if (kernelSamplePixelIndex < 0)
+				{
+					kernelSamplePixelIndex = 0;
+				}
+				else if (kernelSamplePixelIndex >= length)
+				{
+					kernelSamplePixelIndex = length - 1;
+				}
+
+				float kernelValue = kernel[kernelColumn + radius];
+
+				pixel.w += pixels[kernelSamplePixelIndex].w * kernelValue;
+				pixel.x += pixels[kernelSamplePixelIndex].x * kernelValue;
+				pixel.y += pixels[kernelSamplePixelIndex].y * kernelValue;
+				pixel.z += pixels[kernelSamplePixelIndex].z * kernelValue;
 			}
 
-			pixel.x += (float)pixels[kernelSamplePixelIndex].x * kernelValue;
-			pixel.y += (float)pixels[kernelSamplePixelIndex].y * kernelValue;
-			pixel.z += (float)pixels[kernelSamplePixelIndex].z * kernelValue;
-			pixel.w += (float)pixels[kernelSamplePixelIndex].w * kernelValue;
+			newPixels[pixelIndex].w = (uint8_t)std::clamp(round(pixel.w), 0.0f, 255.0f);
+			newPixels[pixelIndex].x = (uint8_t)std::clamp(round(pixel.x), 0.0f, 255.0f);
+			newPixels[pixelIndex].y = (uint8_t)std::clamp(round(pixel.y), 0.0f, 255.0f);
+			newPixels[pixelIndex].z = (uint8_t)std::clamp(round(pixel.z), 0.0f, 255.0f);
 		}
-
-		newPixels[pixelIndex].x = (uint8_t)ceil(pixel.x);
-		newPixels[pixelIndex].y = (uint8_t)ceil(pixel.y);
-		newPixels[pixelIndex].z = (uint8_t)ceil(pixel.z);
-		newPixels[pixelIndex].w = (uint8_t)ceil(pixel.w);
 	}
 
 	// Apply a 1D kernel in the vertical direction to all pixels.
-	for (size_t pixelIndex = 0; pixelIndex < length; pixelIndex++)
+	for (size_t i = 0; i < height; i++)
 	{
-		Vec4f pixel = {};
-		for (int32_t kernelRow = -radius; kernelRow <= radius; kernelRow++)
+		for (size_t j = 0; j < width; j++)
 		{
-			float kernelValue = kernel[kernelRow + radius];
-			int32_t kernelSamplePixelIndex = pixelIndex + (width * kernelRow);
+			Vec4f pixel = {};
+			size_t pixelIndex = j + (i * height);
 
-			// If the kernel tries to sample a pixel outside of the image, reflect the index value back into the image.
-			if (kernelSamplePixelIndex < 0)
+			for (int32_t kernelRow = -radius; kernelRow <= radius; kernelRow++)
 			{
-				kernelSamplePixelIndex = -kernelSamplePixelIndex;
-			}
-			else if (kernelSamplePixelIndex >= length)
-			{
-				auto temp = kernelSamplePixelIndex - length;
-				kernelSamplePixelIndex -= temp * 2;
+				int32_t kernelSamplePixelIndex = pixelIndex + (width * kernelRow);
+
+				if (kernelSamplePixelIndex < 0)
+				{
+					kernelSamplePixelIndex = 0;
+				}
+				else if (kernelSamplePixelIndex >= length)
+				{
+					kernelSamplePixelIndex = length - 1;
+				}
+
+				float kernelValue = kernel[kernelRow + radius];
+
+				pixel.w += newPixels[kernelSamplePixelIndex].w * kernelValue;
+				pixel.x += newPixels[kernelSamplePixelIndex].x * kernelValue;
+				pixel.y += newPixels[kernelSamplePixelIndex].y * kernelValue;
+				pixel.z += newPixels[kernelSamplePixelIndex].z * kernelValue;
 			}
 
-			pixel.x += (float)newPixels[kernelSamplePixelIndex].x * kernelValue;
-			pixel.y += (float)newPixels[kernelSamplePixelIndex].y * kernelValue;
-			pixel.z += (float)newPixels[kernelSamplePixelIndex].z * kernelValue;
-			pixel.w += (float)newPixels[kernelSamplePixelIndex].w * kernelValue;
+			newPixels[pixelIndex].w = (uint8_t)std::clamp(round(pixel.w), 0.0f, 255.0f);
+			newPixels[pixelIndex].x = (uint8_t)std::clamp(round(pixel.x), 0.0f, 255.0f);
+			newPixels[pixelIndex].y = (uint8_t)std::clamp(round(pixel.y), 0.0f, 255.0f);
+			newPixels[pixelIndex].z = (uint8_t)std::clamp(round(pixel.z), 0.0f, 255.0f);
 		}
-
-		newPixels[pixelIndex].x = (uint8_t)ceil(pixel.x);
-		newPixels[pixelIndex].y = (uint8_t)ceil(pixel.y);
-		newPixels[pixelIndex].z = (uint8_t)ceil(pixel.z);
-		newPixels[pixelIndex].w = (uint8_t)ceil(pixel.w);
 	}
 
 	return newPixels;
