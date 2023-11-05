@@ -368,7 +368,7 @@ int main(int, char**)
 
 	// Create window with Vulkan context
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(1280, 720, "Image Processing", nullptr, nullptr);
 	if (!glfwVulkanSupported())
 	{
 		printf("GLFW: Vulkan Not Supported\n");
@@ -397,8 +397,9 @@ int main(int, char**)
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable docking
+	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -469,9 +470,10 @@ int main(int, char**)
 	}
 
 	// Our state
-	bool show_demo_window = true;
-	bool show_another_window = false;
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	bool show_demo_window = false;
+
+	// Really obnoxious debug clear color because we should never see it.
+	ImVec4 clear_color = ImVec4(1.0f, 0.0f, 0.9f, 1.00f);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window))
@@ -506,36 +508,52 @@ int main(int, char**)
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
-		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+		static ImGuiWindowFlags mainFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(viewport->WorkSize);
+
+		if (ImGui::Begin("Main", nullptr, mainFlags))
 		{
-			static float f = 0.0f;
-			static int counter = 0;
+			if (ImGui::BeginMainMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					ImGui::MenuItem("Open");
+					ImGui::MenuItem("Export As");
 
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+					if (ImGui::MenuItem("Exit"))
+					{
+						glfwSetWindowShouldClose(window, GLFW_TRUE);
+					}
 
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-			ImGui::Checkbox("Another Window", &show_another_window);
+					ImGui::EndMenu();
+				}
 
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+				ImGui::EndMainMenuBar();
+			}
+			
+			static ImGuiWindowFlags propertiesFlags = ImGuiWindowFlags_NoSavedSettings;
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImVec2 size = viewport->WorkSize;
+			size.x /= 3;
+			ImGui::SetNextWindowSize(size);
 
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
+			if (ImGui::Begin("Properties", nullptr, propertiesFlags))
+			{
+				ImGui::End();
+			}
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-			ImGui::End();
-		}
+			ImGui::SetNextWindowPos(ImVec2(341, 19), ImGuiCond_FirstUseEver);
+			size = viewport->Size;
+			ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
 
-		// 3. Show another simple window.
-		if (show_another_window)
-		{
-			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-			ImGui::Text("Hello from another window!");
-			if (ImGui::Button("Close Me"))
-				show_another_window = false;
+			if (ImGui::Begin("Viewport"))
+			{
+				// Image goes here.
+				ImGui::End();
+			}
+
 			ImGui::End();
 		}
 
