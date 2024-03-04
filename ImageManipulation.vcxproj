@@ -51,7 +51,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>%GLFW_DIR%\include;$(ProjectDir)src\public;$(ProjectDir)imgui;%VULKAN_SDK%\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%GLM_DIR%;%GLFW_DIR%\include;$(ProjectDir)src\public;$(ProjectDir)imgui;%VULKAN_SDK%\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -71,7 +71,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>%GLFW_DIR%\include;$(ProjectDir)src\public;$(ProjectDir)imgui;%VULKAN_SDK%\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%GLM_DIR%;%GLFW_DIR%\include;$(ProjectDir)src\public;$(ProjectDir)imgui;%VULKAN_SDK%\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -93,11 +93,10 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\private\Effects.cpp" />
     <ClCompile Include="src\private\main.cpp" />
-    <ClCompile Include="src\TGA\TexFile-Tga.cpp" />
-    <ClCompile Include="src\TGA\TexFile-Tga.ixx" />
-    <ClCompile Include="src\public\TexFile.ixx" />
+    <ClCompile Include="src\TGA\tga.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="glm_extensions.hpp" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -107,7 +106,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="src\public\Effects.h" />
-    <ClInclude Include="src\public\Vector.h" />
+    <ClInclude Include="src\TGA\tga.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter" />

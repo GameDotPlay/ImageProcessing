@@ -1,8 +1,6 @@
-module;
-
 #include <fstream>
-
-module TexFile:Tga;
+#include "tga.h"
+#include "glm_extensions.hpp"
 
 using namespace Tga;
 
@@ -69,7 +67,7 @@ EErrorCode TgaImage::LoadFromFile(const std::string& filename)
 
 TgaImage::~TgaImage() { }
 
-void TgaImage::SetPixelData(std::unique_ptr<Vec4[]> newPixels)
+void TgaImage::SetPixelData(std::unique_ptr<glm::u8vec4[]> newPixels)
 {
 	this->pixelBuffer = std::move(newPixels);
 }
@@ -137,7 +135,7 @@ void TgaImage::PopulateColorMap(std::ifstream& inStream)
 		return;
 	}
 
-	this->colorMap = std::make_shared<Vec4[]>(this->header->ColorMapLength);
+	this->colorMap = std::make_shared<glm::u8vec4[]>(this->header->ColorMapLength);
 
 	// Go to start of color map entries.
 	inStream.seekg((size_t)Header::SIZE + this->header->ColorMapFirstEntryIndex, std::ios::beg);
@@ -173,7 +171,7 @@ void TgaImage::ParseBlackWhite(std::ifstream& inStream)
 	}
 
 	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
-	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+	this->pixelBuffer = std::make_shared<glm::u8vec4[]>(pixelsLength);
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
@@ -197,7 +195,7 @@ void TgaImage::ParseRLETrueColor(std::ifstream& inStream)
 	}
 
 	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
-	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+	this->pixelBuffer = std::make_shared<glm::u8vec4[]>(pixelsLength);
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
@@ -212,7 +210,7 @@ void TgaImage::ParseRLETrueColor(std::ifstream& inStream)
 
 		if (packet & EPacketMask::RunLengthPacket)
 		{
-			Vec4 pixelValue = {};
+			glm::u8vec4 pixelValue = {};
 			inStream.read((char*)&pixelValue.z, sizeof(uint8_t));
 			inStream.read((char*)&pixelValue.y, sizeof(uint8_t));
 			inStream.read((char*)&pixelValue.x, sizeof(uint8_t));
@@ -257,7 +255,7 @@ void TgaImage::ParseRLEBlackWhite(std::ifstream& inStream)
 	}
 
 	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
-	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+	this->pixelBuffer = std::make_shared<glm::u8vec4[]>(pixelsLength);
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
@@ -272,7 +270,7 @@ void TgaImage::ParseRLEBlackWhite(std::ifstream& inStream)
 
 		if (packet & EPacketMask::RunLengthPacket)
 		{
-			Vec4 pixelValue = {};
+			glm::u8vec4 pixelValue = {};
 			inStream.read((char*)&pixelValue.x, sizeof(uint8_t));
 
 			if (this->GetAlphaChannelDepth() == 8) // 32 bit pixels
@@ -343,7 +341,7 @@ void TgaImage::PopulatePixelBuffer(std::ifstream& inStream)
 	}
 
 	size_t pixelsLength = (size_t)(this->header->Width * this->header->Height);
-	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+	this->pixelBuffer = std::make_shared<glm::u8vec4[]>(pixelsLength);
 
 	// Go to the pixel data position.
 	inStream.seekg(Header::SIZE, std::ios::beg);
@@ -381,10 +379,10 @@ void TgaImage::PopulateColorMappedPixels(std::ifstream& inStream)
 	}
 }
 
-void TgaImage::PopulatePixelBuffer(const std::shared_ptr<Vec4[]>& colorMap)
+void TgaImage::PopulatePixelBuffer(const std::shared_ptr<glm::u8vec4[]>& colorMap)
 {
 	size_t pixelsLength = (size_t)this->header->Width * this->header->Height;
-	this->pixelBuffer = std::make_shared<Vec4[]>(pixelsLength);
+	this->pixelBuffer = std::make_shared<glm::u8vec4[]>(pixelsLength);
 
 	for (size_t i = 0; i < pixelsLength; i++)
 	{
@@ -483,7 +481,7 @@ void TgaImage::UpdateColorMapping()
 	this->header->ColorMapType = 1;
 
 	size_t pixelsLength = (size_t)this->header->Width * this->header->Height;
-	std::unordered_map<Vec4, size_t> newMap;
+	std::unordered_map<glm::u8vec4, size_t> newMap;
 
 	size_t j = 0;
 	for (size_t i = 0; i < pixelsLength; i++)
@@ -496,7 +494,7 @@ void TgaImage::UpdateColorMapping()
 	}
 
 	this->colorMap.reset();
-	this->colorMap = std::make_shared<Vec4[]>(newMap.size());
+	this->colorMap = std::make_shared<glm::u8vec4[]>(newMap.size());
 
 	for (const auto& entry : newMap)
 	{
@@ -878,7 +876,7 @@ void TgaImage::WriteFooterToFile(std::ofstream& outFile) const
 	outFile.write((char*)&this->footer->ZeroTerminator, sizeof(uint8_t));
 }
 
-const std::shared_ptr<Vec4[]> TgaImage::GetPixelBuffer() const
+const std::shared_ptr<glm::u8vec4[]> TgaImage::GetPixelBuffer() const
 {
 	return this->pixelBuffer;
 }

@@ -4,11 +4,11 @@
 #include <algorithm>
 #include <corecrt_math_defines.h>
 
-std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
+std::unique_ptr<glm::u8vec4[]> const Effects::GaussianBlur(const std::shared_ptr<glm::u8vec4[]>& pixels, const size_t width, const size_t height, float blurAmount)
 {
 	blurAmount = std::clamp(blurAmount, 0.0f, 1.0f);
 	size_t length = width * height;
-	std::unique_ptr<Vec4[]> newPixels = std::make_unique<Vec4[]>(length);
+	std::unique_ptr<glm::u8vec4[]> newPixels = std::make_unique<glm::u8vec4[]>(length);
 
 	// Scale the radius of the blurring effect by blurAmount, but we always want a radius of at least 1.
 	// A value of 20 is chosen here as a reasonable maximum value of the radius to get a near-unrecognizable image at blurAmount = 1.
@@ -25,7 +25,7 @@ std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]
 	{
 		for (size_t j = 0; j < width; j++)
 		{
-			Vec4f pixel = {};
+			glm::u8vec4 pixel = {};
 			size_t pixelIndex = j + (i * height);
 
 			for (int32_t kernelColumn = -radius; kernelColumn <= radius; kernelColumn++)
@@ -49,10 +49,10 @@ std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]
 				pixel.z += pixels[kernelSamplePixelIndex].z * kernelValue;
 			}
 
-			newPixels[pixelIndex].w = (uint8_t)std::clamp(round(pixel.w), 0.0f, 255.0f);
-			newPixels[pixelIndex].x = (uint8_t)std::clamp(round(pixel.x), 0.0f, 255.0f);
-			newPixels[pixelIndex].y = (uint8_t)std::clamp(round(pixel.y), 0.0f, 255.0f);
-			newPixels[pixelIndex].z = (uint8_t)std::clamp(round(pixel.z), 0.0f, 255.0f);
+			newPixels[pixelIndex].w = (uint8_t)std::clamp((float)round(pixel.w), 0.0f, 255.0f);
+			newPixels[pixelIndex].x = (uint8_t)std::clamp((float)round(pixel.x), 0.0f, 255.0f);
+			newPixels[pixelIndex].y = (uint8_t)std::clamp((float)round(pixel.y), 0.0f, 255.0f);
+			newPixels[pixelIndex].z = (uint8_t)std::clamp((float)round(pixel.z), 0.0f, 255.0f);
 		}
 	}
 
@@ -61,7 +61,7 @@ std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]
 	{
 		for (size_t j = 0; j < width; j++)
 		{
-			Vec4f pixel = {};
+			glm::u8vec4 pixel = {};
 			size_t pixelIndex = j + (i * height);
 
 			for (int32_t kernelRow = -radius; kernelRow <= radius; kernelRow++)
@@ -85,10 +85,10 @@ std::unique_ptr<Vec4[]> const Effects::GaussianBlur(const std::shared_ptr<Vec4[]
 				pixel.z += newPixels[kernelSamplePixelIndex].z * kernelValue;
 			}
 
-			newPixels[pixelIndex].w = (uint8_t)std::clamp(round(pixel.w), 0.0f, 255.0f);
-			newPixels[pixelIndex].x = (uint8_t)std::clamp(round(pixel.x), 0.0f, 255.0f);
-			newPixels[pixelIndex].y = (uint8_t)std::clamp(round(pixel.y), 0.0f, 255.0f);
-			newPixels[pixelIndex].z = (uint8_t)std::clamp(round(pixel.z), 0.0f, 255.0f);
+			newPixels[pixelIndex].w = (uint8_t)std::clamp((float)round(pixel.w), 0.0f, 255.0f);
+			newPixels[pixelIndex].x = (uint8_t)std::clamp((float)round(pixel.x), 0.0f, 255.0f);
+			newPixels[pixelIndex].y = (uint8_t)std::clamp((float)round(pixel.y), 0.0f, 255.0f);
+			newPixels[pixelIndex].z = (uint8_t)std::clamp((float)round(pixel.z), 0.0f, 255.0f);
 		}
 	}
 

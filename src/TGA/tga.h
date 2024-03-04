@@ -1,15 +1,13 @@
-export module TexFile:Tga;
-
-import <Vector.h>;
-import <string>;
-import <memory>;
-import <vector>;
-import <unordered_map>;
+#include <string>;
+#include <memory>;
+#include <vector>;
+#include <unordered_map>;
+#include "glm/ext/vector_uint4_sized.hpp"
 
 namespace Tga
 {
 	/** Enumeration of TGA image types. */
-	export enum EImageType : uint8_t
+	enum class EImageType : uint8_t
 	{
 		NoImageData = 0,
 		UncompressedColorMapped = 1,
@@ -21,7 +19,7 @@ namespace Tga
 	};
 
 	/** Enumeration of possible error codes to return. */
-	export enum EErrorCode : int8_t
+	enum class EErrorCode : int8_t
 	{
 		NoError = 0,
 		FilePath = -1,
@@ -97,7 +95,7 @@ namespace Tga
 	};
 
 	/** TgaImage class is responsible for managing a TGA file resource. */
-	export class TgaImage
+	class TgaImage
 	{
 	public:
 
@@ -130,13 +128,13 @@ namespace Tga
 		/**
 		 * Get the raw pixel buffer from the TGA image.
 		 */
-		const std::shared_ptr<Vec4[]> GetPixelBuffer() const;
+		const std::shared_ptr<glm::u8vec4[]> GetPixelBuffer() const;
 
 		/**
 		 * Set the pixel data of the TGA image.
 		 * @param newPixels The new pixel data. Must be same size as original pixel data.
 		 */
-		void SetPixelData(std::unique_ptr<Vec4[]> newPixels);
+		void SetPixelData(std::unique_ptr<glm::u8vec4[]> newPixels);
 
 		/**
 		 * Indicates the right-to-left pixel ordering of the TGA image.
@@ -190,13 +188,13 @@ namespace Tga
 		std::unique_ptr<Footer> footer = nullptr;
 
 		/** Uncompressed pixel data stored as an array of Vec4. */
-		std::shared_ptr<Vec4[]> pixelBuffer = nullptr;
+		std::shared_ptr<glm::u8vec4[]> pixelBuffer = nullptr;
 
 		/** Pixels stored as an index into the colorMap. Only used if ImageType==1 (ColorMapped). */
 		std::shared_ptr<uint8_t[]> colorMappedPixels = nullptr;
 
 		/** A mapping of unique pixel values. Only used if ImageType==1 (ColorMapped). */
-		std::shared_ptr<Vec4[]> colorMap = nullptr;
+		std::shared_ptr<glm::u8vec4[]> colorMap = nullptr;
 
 		/**
 		 * Parses an uncompressed color mapped TGA image into internal fields.
@@ -279,7 +277,7 @@ namespace Tga
 		 * Takes a color mapping and indices into the color map and populates the raw pixel buffer.
 		 * @param colorMap The color mapping.
 		 */
-		void PopulatePixelBuffer(const std::shared_ptr<Vec4[]>& colorMap);
+		void PopulatePixelBuffer(const std::shared_ptr<glm::u8vec4[]>& colorMap);
 
 		/**
 		 * Write the TGA header field to the output stream.

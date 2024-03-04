@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Vector.h>
 #include <vector>
 #include <memory>
+#include "glm/ext/vector_uint4_sized.hpp"
 
 /** This class contains any effects that can be applied to an image. */
 class Effects
@@ -16,7 +16,7 @@ public:
 	* @param height The height of the pixel data.
 	* @param blurAmount Value of 0-1 inclusive. Higher value gives stronger blur effect.
 	*/
-	static std::unique_ptr<Vec4[]> const GaussianBlur(const std::shared_ptr<Vec4[]>& pixels, const size_t width, const size_t height, float blurAmount);
+	static std::unique_ptr<glm::u8vec4[]> const GaussianBlur(const std::shared_ptr<glm::u8vec4[]>& pixels, const size_t width, const size_t height, float blurAmount);
 
 private:
 

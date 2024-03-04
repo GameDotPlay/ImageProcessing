@@ -22,15 +22,6 @@
     <ClCompile Include="src\private\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\public\TexFile.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TGA\TexFile-Tga.cpp">
-      <Filter>TGA</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TGA\TexFile-Tga.ixx">
-      <Filter>TGA</Filter>
-    </ClCompile>
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -52,12 +43,12 @@
     <ClCompile Include="imgui\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\TGA\tga.cpp">
+      <Filter>TGA</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\public\Effects.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\public\Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h">
@@ -82,6 +73,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="imgui\imstb_truetype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TGA\tga.h">
+      <Filter>TGA</Filter>
+    </ClInclude>
+    <ClInclude Include="glm_extensions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
